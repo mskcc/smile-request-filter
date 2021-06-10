@@ -36,12 +36,15 @@ public class RequestStatusLogger {
      * - REQUEST_PARSING_ERROR: json parsing exception thrown
      * - CMO_REQUEST_FILTER_SKIPPED_REQUEST: applies if metadb server is running
      *        with the cmoRequestFilter enabled and a non-cmo request is encountered
+     * - CMO_REQUEST_FAILED_SANITY_CHECK: request failed cmo-specific sanity check on
+     *        required fields for generating cmo labels
      */
     public enum StatusType {
         REQUEST_WITH_MISSING_SAMPLES,
         CMO_REQUEST_MISSING_REQ_FIELDS,
         REQUEST_PARSING_ERROR,
-        CMO_REQUEST_FILTER_SKIPPED_REQUEST
+        CMO_REQUEST_FILTER_SKIPPED_REQUEST,
+        CMO_REQUEST_FAILED_SANITY_CHECK
     }
 
     /**

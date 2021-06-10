@@ -84,13 +84,21 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                         }
                         // does the request filtering...
                         if (isCmoRequest(requestJson)) {
-                            LOG.info("Handling CMO-based sanity checking...");
+                            LOG.info("Handling CMO-specific sanity checking...");
                             // check that required fields are present
                             // check for accepted values in the required fields
                             // if valid then publish to cmo label generator topic
-                            messagingGateway.publish(requestId,
+                            Boolean passCheck = Boolean.TRUE; // set to implementation of san checking
+                            if (passCheck) {
+                                messagingGateway.publish(requestId,
                                     CMO_LABEL_GENERATOR_TOPIC,
                                     requestJson);
+                            } else {
+                                LOG.error("CMO request failed sanity checking - logging request status...");
+                                requestStatusLogger.logRequestStatus(requestJson,
+                                        RequestStatusLogger.StatusType.CMO_REQUEST_FAILED_SANITY_CHECK);
+                            }
+
                         } else {
                             LOG.info("Handling non-CMO request...");
                             // if valid then publish to igo new request topic
