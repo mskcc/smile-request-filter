@@ -76,7 +76,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                     validSampleList.add(sample);
                 }
             } else if (isValidCmoSample(sampleMap, isCmoRequest, hasRequestId)) {
-                    validSampleList.add(sample);
+                validSampleList.add(sample);
             }
 
         }
@@ -105,7 +105,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * <li>If RequestId, InvestigatorSampleId, CmoPatientId,
      * SpecimenType, SampleType or NormalizedPatientId are missing, returns false
      * </ul>
-     * @throws JsonProcessingException, JsonMappingException 
+     * @throws JsonProcessingException or JsonMappingException 
      */
     private boolean isValidCmoSample(Map<String, String> sampleMap,
             boolean isCmoRequest, boolean hasRequestId) throws JsonMappingException, JsonProcessingException {
@@ -130,9 +130,10 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * <li>Check if the sample has all the required fields
      * <li>If baitSet or normalizedPatientId is missing, returns false
      * </ul>
-     * @throws JsonProcessingException, JsonMappingException 
+     * @throws JsonProcessingException or JsonMappingException 
      */
-    private boolean isValidNonCmoSample(Map<String, String> sampleMap) throws JsonMappingException, JsonProcessingException {
+    private boolean isValidNonCmoSample(Map<String, String> sampleMap)
+            throws JsonMappingException, JsonProcessingException {
         if (sampleMap.isEmpty()
                 || sampleMap == null
                 || !hasBaitSet(sampleMap)
@@ -226,11 +227,10 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * <li>if sampleType is "Pooled Library", checks recipe
      * <li>Else returns true if sampleType has a valid value
      * </ul>
-     * @param sampleMap
-     * @return
-     * @throws JsonProcessingException, JsonMappingException 
+     * @throws JsonProcessingException or JsonMappingException 
      */
-    private boolean hasSampleType(Map<String, String> sampleMap) throws JsonMappingException, JsonProcessingException {
+    private boolean hasSampleType(Map<String, String> sampleMap)
+            throws JsonMappingException, JsonProcessingException {
         if (Strings.isBlank(sampleMap.get("sampleType"))) {
             return hasNAtoExtract(sampleMap);
         }
@@ -247,19 +247,23 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         return Strings.isBlank(sampleMap.get("recipe"));
     }
 
-    private boolean hasNAtoExtract(Map<String, String> sampleMap) throws JsonMappingException, JsonProcessingException {
+    private boolean hasNAtoExtract(Map<String, String> sampleMap)
+            throws JsonMappingException, JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         if (sampleMap.containsKey("cmoSampleIdFields")) {
-            Map<String, String> cmoSampleIdfields = mapper.readValue(sampleMap.get("cmoSampleIdFields"), Map.class);
+            Map<String, String> cmoSampleIdfields = mapper.readValue(
+                    sampleMap.get("cmoSampleIdFields"), Map.class);
             return Strings.isBlank(cmoSampleIdfields.get("naToExtract"));
         }
         return Boolean.FALSE;
     }
     
-    private boolean hasNormalizedPatientId(Map<String, String> sampleMap) throws JsonMappingException, JsonProcessingException {   
+    private boolean hasNormalizedPatientId(Map<String, String> sampleMap)
+            throws JsonMappingException, JsonProcessingException {   
         ObjectMapper mapper = new ObjectMapper();
         if (sampleMap.containsKey("cmoSampleIdFields")) {
-            Map<String, String> cmoSampleIdfields = mapper.readValue(sampleMap.get("cmoSampleIdFields"), Map.class);
+            Map<String, String> cmoSampleIdfields = mapper.readValue(
+                    sampleMap.get("cmoSampleIdFields"), Map.class);
             return Strings.isBlank(cmoSampleIdfields.get("normalizedPatientId"));
         }
         return Boolean.FALSE;
