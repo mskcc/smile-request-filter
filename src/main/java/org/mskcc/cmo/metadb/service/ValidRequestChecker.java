@@ -5,6 +5,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import java.io.IOException;
 
 public interface ValidRequestChecker {
-    public String checkIfValidRequest(String requestJson)
+    public String getFilteredValidRequestJson(String requestJson)
             throws JsonMappingException, JsonProcessingException, IOException;
 }

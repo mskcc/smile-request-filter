@@ -23,10 +23,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
-    private final ObjectMapper mapper = new ObjectMapper();
-    private boolean isCmoRequest;
-    private boolean hasRequestId;
-
     @Autowired
     private RequestStatusLogger requestStatusLogger;
 
@@ -36,17 +32,23 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     private static final Log LOG = LogFactory.getLog(ValidRequestCheckerImpl.class);
 
     /**
-     * Checks is the request is a cmoRequest and has a requestId
-     * Sample list is extracted from the requestJsonMap
-     * If the total number of samples available is equal to valid samples,
-     * then the request as a whole is valid
-     * If the number of valid samples is zero, the request is invalid and will be logged
-     * If the number of valid samples is less than the total number of samples, the
+     * getFilteredValidRequestJson checks if the request is a cmoRequest and has a requestId
+     * 
+     * <p><ul>
+     * <li>Sample list is extracted from the requestJsonMap
+     * <li>If the total number of samples available is equal to valid samples,
+     * then the whole request is valid
+     * <li>If the number of valid samples is zero, the request is invalid and will be logged
+     * <li>If the number of valid samples is less than the total number of samples, the
      * request is still considered valid but logged to keep note of the invalid samples
+     * </ul>
      * @throws IOException
      */
     @Override
-    public String checkIfValidRequest(String requestJson) throws IOException {
+    public String getFilteredValidRequestJson(String requestJson) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        boolean isCmoRequest;
+        boolean hasRequestId;
 
         if (StringUtils.isAllBlank(requestJson)) {
             return null;
@@ -74,7 +76,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                     validSampleList.add(sample);
                 }
             } else {
-                if (isValidCmoSample(sampleMap)) {
+                if (isValidCmoSample(sampleMap, isCmoRequest, hasRequestId)) {
                     validSampleList.add(sample);
                 }
             }
@@ -87,7 +89,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                 requestJsonMap.replace("samples", newSamplesString);
                 LOG.info("CMO request passed sanity checking - missing samples...");
                 requestStatusLogger.logRequestStatus(requestJson,
-                        RequestStatusLogger.StatusType.REQUEST_WITH_MISSING_SAMPLES);
+                        RequestStatusLogger.StatusType.CMO_REQUEST_MISSING_REQ_FIELDS);
             }
             return mapper.writeValueAsString(requestJsonMap);
         }
@@ -98,12 +100,16 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     /**
-     * Receives a sampleMap
-     * Check if the sample has all the required fields
-     * If RequestId, InvestigatorSampleId, CmoPatientId,
+     * isValidCmoSample receives a sampleMap
+     * 
+     * <p><ul>
+     * <li>Checks if the sample has all the required fields
+     * <li>If RequestId, InvestigatorSampleId, CmoPatientId,
      * SpecimenType, SampleType or NormalizedPatientId are missing, returns false
+     * </ul>
      */
-    private boolean isValidCmoSample(Map<String, String> sampleMap) {
+    private boolean isValidCmoSample(Map<String, String> sampleMap,
+            boolean isCmoRequest, boolean hasRequestId) {
         if (sampleMap.isEmpty() || sampleMap == null) {
             return false;
         }
@@ -119,9 +125,12 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     /**
-     * Receives a sampleMap
-     * Check if the sample has all the required fields
-     * If baitSet or cmoPatientId is missing, returns false
+     * isValidNonCmoSample receives a sampleMap
+     * 
+     * <p><ul>
+     * <li>Check if the sample has all the required fields
+     * <li>If baitSet or cmoPatientId is missing, returns false
+     * </ul>
      */
     private boolean isValidNonCmoSample(Map<String, String> sampleMap) {
         if (sampleMap.isEmpty() || sampleMap == null) {
@@ -169,9 +178,14 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     /**
-     * Ensures all variables required to retrieve Sample Type Abbreviation are available
-     * if the specimenType is blank or not one of the listed types then we look for CmoSampleClass
-     * if it "exosome" and "cfDna" then we look for sampleOrigin
+     * hasSpecimenType ensures all variables required to retrieve
+     * Sample Type Abbreviation are available
+     * 
+     * <p><ul>
+     * <li>if the specimenType is blank or not one of the listed types
+     * then we look for CmoSampleClass
+     * <li>if it "exosome" and "cfDna" then we look for sampleOrigin
+     * </ul>
      * @param sampleMap
      * @return
      */
@@ -215,10 +229,14 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     /**
-     * Ensures all variables required to retrieve Nucleid Acid Abbreviation are available
-     * if sampleType is null empty, checks NAtoExtract
-     * if sampleType is "Pooled Library", checks recipe
-     * Else returns true if sampleType has a valid value
+     * hasSampleType ensures all variables required to retrieve
+     * Nucleid Acid Abbreviation are available
+     * 
+     * <p><ul>
+     * <li>if sampleType is null empty, checks NAtoExtract
+     * <li>if sampleType is "Pooled Library", checks recipe
+     * <li>Else returns true if sampleType has a valid value
+     * </ul>
      * @param sampleMap
      * @return
      */

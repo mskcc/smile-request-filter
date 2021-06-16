@@ -77,15 +77,16 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                     String requestJson = requestFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
                         String requestId = getRequestIdFromRequestJson(requestJson);
-                        requestJson = validRequestChecker.checkIfValidRequest(requestJson);
-                        Boolean passCheck = (requestJson != null);
+                        String filteredRequestJson = validRequestChecker.getFilteredValidRequestJson(
+                                requestJson);
+                        Boolean passCheck = (filteredRequestJson != null);
 
                         if (isCmoRequest(requestJson)) {
                             LOG.info("Handling CMO-specific sanity checking...");
                             if (passCheck) {
                                 messagingGateway.publish(requestId,
                                     CMO_LABEL_GENERATOR_TOPIC,
-                                    requestJson);
+                                    filteredRequestJson);
                             }
 
                         } else {
@@ -93,7 +94,7 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                             if (passCheck) {
                                 messagingGateway.publish(requestId,
                                         IGO_NEW_REQUEST_TOPIC,
-                                        requestJson);
+                                        filteredRequestJson);
                             }
                         }
                     }
