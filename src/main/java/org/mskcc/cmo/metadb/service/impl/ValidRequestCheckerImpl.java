@@ -154,7 +154,6 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return false;
         }
         return true;
-
     }
 
     private boolean hasCmoPatientId(Map<String, String> sampleMap) {
@@ -162,7 +161,6 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return false;
         }
         return true;
-
     }
 
     /**
@@ -230,7 +228,6 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return true;
         }
         return false;
-
     }
 
     private boolean hasRecipe(Map<String, String> sampleMap) {
@@ -250,7 +247,6 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return true;
         }
         return true;
-
     }
 
     /**
@@ -263,6 +259,5 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return true;
         }
         return true;
-
     }
 }
