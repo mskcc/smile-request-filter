@@ -1,5 +1,6 @@
 package org.mskcc.cmo.metadb.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,13 +10,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.util.Strings;
-import org.mskcc.cmo.common.enums.*;
+import org.mskcc.cmo.common.enums.CmoSampleClass;
+import org.mskcc.cmo.common.enums.SampleOrigin;
+import org.mskcc.cmo.common.enums.SampleType;
+import org.mskcc.cmo.common.enums.SpecimenType;
 import org.mskcc.cmo.metadb.service.ValidRequestChecker;
 import org.mskcc.cmo.metadb.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class ValidRequestCheckerImpl implements ValidRequestChecker {
@@ -35,9 +38,11 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     /**
      * Checks is the request is a cmoRequest and has a requestId
      * Sample list is extracted from the requestJsonMap
-     * If the total number of samples available is equal to valid samples, then the request as a whole is valid
+     * If the total number of samples available is equal to valid samples,
+     * then the request as a whole is valid
      * If the number of valid samples is zero, the request is invalid and will be logged
-     * If the number of valid samples is less than the total number of samples, the request is still considered valid but logged to keep note of the invalid samples
+     * If the number of valid samples is less than the total number of samples, the
+     * request is still considered valid but logged to keep note of the invalid samples
      * @throws IOException
      */
     @Override
@@ -64,7 +69,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
         for (Object sample: sampleList) {
             Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
-            if(!igoCmoRequestFilter && !isCmoRequest) {
+            if (!igoCmoRequestFilter && !isCmoRequest) {
                 if (isValidNonCmoSample(sampleMap)) {
                     validSampleList.add(sample);
                 }
@@ -77,7 +82,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         }
 
         if (validSampleList.size() > 0) {
-            if(validSampleList.size() < numOfSamples) {
+            if (validSampleList.size() < numOfSamples) {
                 String newSamplesString = mapper.writeValueAsString(validSampleList.toArray(new Object[0]));
                 requestJsonMap.replace("samples", newSamplesString);
                 LOG.info("CMO request passed sanity checking - missing samples...");
@@ -99,7 +104,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * SpecimenType, SampleType or NormalizedPatientId are missing, returns false
      */
     private boolean isValidCmoSample(Map<String, String> sampleMap) {
-        if(sampleMap.isEmpty() || sampleMap == null) {
+        if (sampleMap.isEmpty() || sampleMap == null) {
             return false;
         }
         if (isCmoRequest && !hasBaitSet(sampleMap)) {
@@ -119,7 +124,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * If baitSet or cmoPatientId is missing, returns false
      */
     private boolean isValidNonCmoSample(Map<String, String> sampleMap) {
-        if(sampleMap.isEmpty() || sampleMap == null) {
+        if (sampleMap.isEmpty() || sampleMap == null) {
             return false;
         }
         if (!hasBaitSet(sampleMap) || !hasNormalizedPatientId(sampleMap)) {
@@ -182,7 +187,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                 || sampleMap.get("specimenType") != "Organoid") {
             return hasCmoSampleClass(sampleMap);
         }
-        if(sampleMap.get("specimenType") == "exosome"
+        if (sampleMap.get("specimenType") == "exosome"
                 || sampleMap.get("specimenType") == "cfDNA") {
             return hasSampleOrigin(sampleMap);
         }
@@ -193,7 +198,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (Strings.isBlank(sampleMap.get("cmoSampleClass"))) {
             return false;
         }
-        if(!EnumUtils.isValidEnumIgnoreCase(CmoSampleClass.class, sampleMap.get("cmoSampleClass"))) {
+        if (!EnumUtils.isValidEnumIgnoreCase(CmoSampleClass.class, sampleMap.get("cmoSampleClass"))) {
             return false;
         }
         return true;
@@ -203,7 +208,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (Strings.isBlank(sampleMap.get("sampleOrigin"))) {
             return false;
         }
-        if(EnumUtils.isValidEnumIgnoreCase(SampleOrigin.class, sampleMap.get("sampleOrigin"))) {
+        if (EnumUtils.isValidEnumIgnoreCase(SampleOrigin.class, sampleMap.get("sampleOrigin"))) {
             return true;
         }
         return false;
@@ -224,7 +229,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (sampleMap.get("sampleType") == "Pooled Library") {
             return hasRecipe(sampleMap);
         }
-        if(EnumUtils.isValidEnumIgnoreCase(SampleType.class, sampleMap.get("sampleType"))) {
+        if (EnumUtils.isValidEnumIgnoreCase(SampleType.class, sampleMap.get("sampleType"))) {
             return true;
         }
         return false;
