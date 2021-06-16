@@ -42,7 +42,7 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
 
     @Value("${num.new_request_handler_threads}")
     private int NUM_NEW_REQUEST_HANDLERS;
-    
+
     @Autowired
     private ValidRequestChecker validRequestChecker;
 
@@ -74,12 +74,12 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
             phaser.arrive();
             while (true) {
                 try {
-                    String requestJson = requestFilterQueue.poll(100, TimeUnit.MILLISECONDS); 
+                    String requestJson = requestFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
                         String requestId = getRequestIdFromRequestJson(requestJson);
                         requestJson = validRequestChecker.checkIfValidRequest(requestJson);
                         Boolean passCheck = (requestJson != null);
-                        
+
                         if (isCmoRequest(requestJson)) {
                             LOG.info("Handling CMO-specific sanity checking...");
                             if (passCheck) {

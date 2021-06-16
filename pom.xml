@@ -39,8 +39,8 @@
     <cmo_metadb_messaging_java.group>com.github.mskcc</cmo_metadb_messaging_java.group>
     <cmo_metadb_messaging_java.version>512dbdac54c00b60f7481421840928a1c45c8c93</cmo_metadb_messaging_java.version>
     <!-- metadb common centralized config properties -->
-    <cmo_metadb_common.groupId>com.github.divyamadala30</cmo_metadb_common.groupId>
-    <cmo_metadb_common.version>1798de5f3aeb7abd41c30c8b8f049827c43e69e7</cmo_metadb_common.version>
+    <cmo_metadb_common.groupId>com.github.mskcc</cmo_metadb_common.groupId>
+    <cmo_metadb_common.version>156900ded3420b98ba9d4f45d01cad1aebe33941</cmo_metadb_common.version>
   </properties>
 
   <dependencies>
