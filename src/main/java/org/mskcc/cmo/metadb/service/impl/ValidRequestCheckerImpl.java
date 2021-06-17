@@ -134,8 +134,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      */
     private boolean isValidNonCmoSample(Map<String, String> sampleMap)
             throws JsonMappingException, JsonProcessingException {
-        if (sampleMap.isEmpty()
-                || sampleMap == null
+        if (sampleMap == null
+                || sampleMap.isEmpty()
                 || !hasBaitSet(sampleMap)
                 || !hasNormalizedPatientId(sampleMap)) {
             return Boolean.FALSE;
