@@ -144,14 +144,16 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     private boolean isCmoRequest(Map<String, Object> requestJsonMap) {
-        if (requestJsonMap.get("cmoRequest") == null || Strings.isBlank(requestJsonMap.get("cmoRequest").toString())) {
+        if (requestJsonMap.get("cmoRequest") == null
+                || Strings.isBlank(requestJsonMap.get("cmoRequest").toString())) {
             return Boolean.FALSE;
         }
         return Boolean.valueOf(requestJsonMap.get("cmoRequest").toString());
     }
 
     private boolean hasRequestId(Map<String, Object> requestJsonMap) {
-        return (requestJsonMap.get("requestId") != null && !Strings.isBlank(requestJsonMap.get("requestId").toString()));
+        return (requestJsonMap.get("requestId") != null
+                && !Strings.isBlank(requestJsonMap.get("requestId").toString()));
     }
 
     private boolean hasBaitSet(Map<String, String> sampleMap) {
