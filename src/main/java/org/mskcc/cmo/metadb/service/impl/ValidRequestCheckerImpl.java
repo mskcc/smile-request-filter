@@ -109,7 +109,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      */
     private boolean isValidCmoSample(Map<String, String> sampleMap,
             boolean isCmoRequest, boolean hasRequestId) throws JsonMappingException, JsonProcessingException {
-        if (sampleMap.isEmpty() || sampleMap == null) {
+        if (sampleMap == null || sampleMap.isEmpty()) {
             return Boolean.FALSE;
         }
         if (isCmoRequest && !hasBaitSet(sampleMap)) {
@@ -144,27 +144,27 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     private boolean isCmoRequest(Map<String, Object> requestJsonMap) {
-        if (Strings.isBlank(requestJsonMap.get("cmoRequest").toString())) {
+        if (requestJsonMap.get("cmoRequest") == null || Strings.isBlank(requestJsonMap.get("cmoRequest").toString())) {
             return Boolean.FALSE;
         }
         return Boolean.valueOf(requestJsonMap.get("cmoRequest").toString());
     }
 
     private boolean hasRequestId(Map<String, Object> requestJsonMap) {
-        return Strings.isBlank(requestJsonMap.get("requestId").toString());
+        return (requestJsonMap.get("requestId") != null && !Strings.isBlank(requestJsonMap.get("requestId").toString()));
     }
 
     private boolean hasBaitSet(Map<String, String> sampleMap) {
-        return Strings.isBlank(sampleMap.get("baitSet"));
+        return !Strings.isBlank(sampleMap.get("baitSet"));
 
     }
 
     private boolean hasInvestigatorSampleId(Map<String, String> sampleMap) {
-        return Strings.isBlank(sampleMap.get("investigatorSampleId"));
+        return !Strings.isBlank(sampleMap.get("investigatorSampleId"));
     }
 
     private boolean hasCmoPatientId(Map<String, String> sampleMap) {
-        return Strings.isBlank(sampleMap.get("cmoPatientId"));
+        return !Strings.isBlank(sampleMap.get("cmoPatientId"));
     }
 
     /**
@@ -244,7 +244,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     private boolean hasRecipe(Map<String, String> sampleMap) {
-        return Strings.isBlank(sampleMap.get("recipe"));
+        return !Strings.isBlank(sampleMap.get("recipe"));
     }
 
     private boolean hasNAtoExtract(Map<String, String> sampleMap)
