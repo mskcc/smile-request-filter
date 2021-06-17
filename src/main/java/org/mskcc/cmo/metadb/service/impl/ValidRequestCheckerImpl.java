@@ -255,7 +255,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (sampleMap.containsKey("cmoSampleIdFields")) {
             Map<String, String> cmoSampleIdfields = mapper.readValue(
                     sampleMap.get("cmoSampleIdFields"), Map.class);
-            return Strings.isBlank(cmoSampleIdfields.get("naToExtract"));
+            return !Strings.isBlank(cmoSampleIdfields.get("naToExtract"));
         }
         return Boolean.FALSE;
     }
@@ -266,7 +266,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (sampleMap.containsKey("cmoSampleIdFields")) {
             Map<String, String> cmoSampleIdfields = mapper.readValue(
                     sampleMap.get("cmoSampleIdFields"), Map.class);
-            return Strings.isBlank(cmoSampleIdfields.get("normalizedPatientId"));
+            return !Strings.isBlank(cmoSampleIdfields.get("normalizedPatientId"));
         }
         return Boolean.FALSE;
     }
