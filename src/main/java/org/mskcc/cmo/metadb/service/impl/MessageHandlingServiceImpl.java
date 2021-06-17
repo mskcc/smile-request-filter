@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.cmo.metadb.service.MessageHandlingService;
+import org.mskcc.cmo.metadb.service.ValidRequestChecker;
 import org.mskcc.cmo.metadb.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,8 +43,8 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
     @Value("${num.new_request_handler_threads}")
     private int NUM_NEW_REQUEST_HANDLERS;
 
-    @Value("${igo.cmo_request_filter:false}")
-    private Boolean igoCmoRequestFilter;
+    @Autowired
+    private ValidRequestChecker validRequestChecker;
 
     @Autowired
     private RequestStatusLogger requestStatusLogger;
@@ -76,35 +77,25 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                     String requestJson = requestFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
                         String requestId = getRequestIdFromRequestJson(requestJson);
-                        if (igoCmoRequestFilter && !isCmoRequest(requestJson)) {
-                            // skip non-cmo requests if the cmo filter is enabled
-                            LOG.info("CMO request filter enabled - skipping non-CMO request: "
-                                    + requestId);
-                            continue;
-                        }
-                        // does the request filtering...
+                        String filteredRequestJson = validRequestChecker.getFilteredValidRequestJson(
+                                requestJson);
+                        Boolean passCheck = (filteredRequestJson != null);
+
                         if (isCmoRequest(requestJson)) {
                             LOG.info("Handling CMO-specific sanity checking...");
-                            // check that required fields are present
-                            // check for accepted values in the required fields
-                            // if valid then publish to cmo label generator topic
-                            Boolean passCheck = Boolean.TRUE; // set to implementation of san checking
                             if (passCheck) {
                                 messagingGateway.publish(requestId,
                                     CMO_LABEL_GENERATOR_TOPIC,
-                                    requestJson);
-                            } else {
-                                LOG.error("CMO request failed sanity checking - logging request status...");
-                                requestStatusLogger.logRequestStatus(requestJson,
-                                        RequestStatusLogger.StatusType.CMO_REQUEST_FAILED_SANITY_CHECK);
+                                    filteredRequestJson);
                             }
 
                         } else {
                             LOG.info("Handling non-CMO request...");
-                            // if valid then publish to igo new request topic
-                            messagingGateway.publish(requestId,
-                                    IGO_NEW_REQUEST_TOPIC,
-                                    requestJson);
+                            if (passCheck) {
+                                messagingGateway.publish(requestId,
+                                        IGO_NEW_REQUEST_TOPIC,
+                                        filteredRequestJson);
+                            }
                         }
                     }
                     if (interrupted && requestFilterQueue.isEmpty()) {
