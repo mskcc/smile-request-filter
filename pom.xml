@@ -102,7 +102,7 @@
   </dependencies>
 
   <build>
-    <finalName>cmo_label_generator</finalName>
+    <finalName>request_filter</finalName>
     <resources>
       <resource>
         <directory>src/main/resources</directory>

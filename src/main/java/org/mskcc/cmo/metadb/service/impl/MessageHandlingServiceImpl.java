@@ -15,6 +15,7 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.util.Strings;
 import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.cmo.metadb.service.MessageHandlingService;
@@ -183,11 +184,19 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
 
     private Boolean isCmoRequest(String requestJson) throws JsonProcessingException {
         Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
+        if (requestJsonMap.get("cmoRequest") == null
+                || Strings.isBlank(requestJsonMap.get("cmoRequest").toString())) {
+            return Boolean.FALSE;
+        }
         return Boolean.valueOf(requestJsonMap.get("cmoRequest").toString());
     }
 
     private String getRequestIdFromRequestJson(String requestJson) throws JsonProcessingException {
         Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
-        return requestJsonMap.get("requestId").toString();
+        if ((requestJsonMap.get("requestId") != null
+                && !Strings.isBlank(requestJsonMap.get("requestId").toString()))) {
+            return requestJsonMap.get("requestId").toString();
+        }
+        return null;
     }
 }
