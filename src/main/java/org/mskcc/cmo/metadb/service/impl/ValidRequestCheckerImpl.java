@@ -237,7 +237,6 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return hasNAtoExtract(sampleMap);
         }
         if (sampleMap.get("sampleType").equalsIgnoreCase("Pooled Library")) {
-            //return true here instead
             return hasBaitSet(sampleMap);
         }
         if (EnumUtils.isValidEnumIgnoreCase(SampleType.class, sampleMap.get("sampleType"))) {
@@ -250,7 +249,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             throws JsonMappingException, JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         if (sampleMap.containsKey("cmoSampleIdFields")) {
-            Map<String, String> cmoSampleIdfields = mapper.readValue(
+            Map<String, String> cmoSampleIdfields = mapper.convertValue(
                     sampleMap.get("cmoSampleIdFields"), Map.class);
             return !Strings.isBlank(cmoSampleIdfields.get("naToExtract"));
         }
