@@ -104,19 +104,5 @@ public class ValidRequestCheckerTest {
         MockJsonTestData requestJson = mockedRequestJsonDataMap.get("mockRequest1bJsonDataWithNAA");
         String modifiedRequestJson = validRequestChecker.getFilteredValidRequestJson(requestJson.getJsonString());
         Assert.assertNotNull(modifiedRequestJson);
-    }
-    
-    private String getErrorMessage(Map<String, String> errorsMap) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("\nConsistencyCheckerUtil failures summary:\n");
-        for (Map.Entry<String, String> entry : errorsMap.entrySet()) {
-            builder.append("\n\tRequest id: ")
-                    .append(entry.getKey())
-                    .append("\n")
-                    .append(entry.getValue())
-                    .append("\n");
-        }
-        return builder.toString();
-    }
-    
+    }    
 }

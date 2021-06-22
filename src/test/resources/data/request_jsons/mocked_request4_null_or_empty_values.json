@@ -46,7 +46,7 @@
       "baitSet": null,
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract" :"testingNaToExtractvalue",
+  		"naToExtract": "testingNaToExtractvalue",
   		"normalizedPatientId": "testingNormalizedPatientIdvalue"
 		},
       "libraries": [
@@ -97,7 +97,7 @@
       "baitSet": "GENESET101_BAITS",
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract" :"",
+  		"naToExtract": "",
   		"normalizedPatientId": ""
 		},
       "libraries": [
@@ -148,7 +148,7 @@
       "baitSet": "",
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract" :"",
+  		"naToExtract": "",
   		"normalizedPatientId": ""
 		},
       "libraries": [
@@ -199,7 +199,7 @@
       "baitSet": "GENESET101_BAITS",
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract" :"",
+  		"naToExtract": "",
   		"normalizedPatientId": null
 		},
       "libraries": [
