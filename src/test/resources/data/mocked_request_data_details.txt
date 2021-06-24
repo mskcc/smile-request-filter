@@ -1,0 +1,8 @@
+identifier	filepath	description
+mockRequest1JsonDataWith2T2N	request_jsons/mocked_request1_complete_tumor_normal.json	Mock request json with 2 tumor samples and 2 matching normals
+mockRequest1aJsonDataWithSTA	request_jsons/mocked_request1a_sample_type_abbreviation.json	Mock request json with available fields to determine sample type abbreviation
+mockRequest1bJsonDataWithNAA	request_jsons/mocked_request1b_nucleic_acid_abbreviation.json	Mock request json with available fields to determine nucleic acid abbreviation
+mockRequest1cJsonDataWithMAS	request_jsons/mocked_request1c_missing_all_samples.json	Mock request json with all invalid samples
+mockRequest1dJsonDataWithMFS	request_jsons/mocked_request1d_missing_few_samples.json	Mock request json with 2 invalid and 2 valid samples
+mockRequest4JsonNullOrEmptyValues	request_jsons/mocked_request4_null_or_empty_values.json	Mock request json with null or empty values.
+mockRequest2aEmptySampleManifestValues	request_jsons/mocked_request2a_one_empty_sample_metadata.json	Mock request json with empty sample metadata fields.
