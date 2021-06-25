@@ -46,12 +46,16 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * - If the number of valid samples is less than the total number of samples that came
      *   with the request then the request is still considered valid but the request is
      *   logged by the request status logger to keep note of the invalid samples.
+     * @param requestJson
      * @throws IOException
      */
     @Override
     public String getFilteredValidRequestJson(String requestJson) throws IOException {
         // if json is blank then nothing to do, return null
         if (StringUtils.isAllBlank(requestJson)) {
+            LOG.info("Skipping empty request");
+            requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.EMPTY_REQUEST);
             return null;
         }
         ObjectMapper mapper = new ObjectMapper();
@@ -63,16 +67,27 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (igoCmoRequestFilter && !isCmoRequest) {
             LOG.info("CMO request filter enabled - skipping non-CMO request: "
                     + requestJsonMap.get("requestId"));
+            requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.CMO_REQUEST_FILTER_SKIPPED_REQUEST);
             return null;
         }
 
         // extract sample list from request json
         Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
                 Object[].class);
-        List<Object> validSampleList = new ArrayList<Object>();
-        int numOfSamples = sampleList.length; // orig num of samples in request
+        // if sample list in incoming request json is empty then log request
+        // to logger file and return null
+        if (sampleList.length == 0) {
+            LOG.info("Encountered request with no samples - request will be logged "
+                    + "in request status logger file and skipped");
+            requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.REQUEST_WITH_MISSING_SAMPLES);
+            return null;
+        }
 
         // validate each sample json and add to validSampleList if it passes check
+        List<Object> validSampleList = new ArrayList<Object>();
+        int numOfSamples = sampleList.length; // orig num of samples in request
         for (Object sample: sampleList) {
             Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
             if (isCmoRequest && isValidCmoSample(sampleMap, isCmoRequest, hasRequestId)) {

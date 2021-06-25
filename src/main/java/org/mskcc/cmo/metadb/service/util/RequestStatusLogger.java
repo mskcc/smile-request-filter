@@ -30,6 +30,7 @@ public class RequestStatusLogger {
 
     /**
      * Request StatusType descriptions:
+     * - EMPTY_REQUEST: a request json that came in empty
      * - REQUEST_WITH_MISSING_SAMPLES: a request that came in with no sample metadata
      * - CMO_REQUEST_MISSING_REQ_FIELDS: a CMO request with sample metadata
      *        that is missing required fields (cmoPatientId, baitSet)
@@ -40,6 +41,7 @@ public class RequestStatusLogger {
      *        required fields for generating cmo labels
      */
     public enum StatusType {
+        EMPTY_REQUEST,
         REQUEST_WITH_MISSING_SAMPLES,
         CMO_REQUEST_MISSING_REQ_FIELDS,
         REQUEST_PARSING_ERROR,
