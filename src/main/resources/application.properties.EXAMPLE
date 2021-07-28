@@ -6,6 +6,7 @@ nats.consumer_name=
 nats.consumer_password=
 nats.url=
 nats.filter_subject=
+nats.request_wait_time_in_seconds=
 
 # nats ssl
 nats.tls_channel=
@@ -28,5 +29,3 @@ metadb.publishing_failures_filepath=
 # detailed consistency checking logger filepath
 metadb_req_filter.request_logger_filepath=
 
-# cmo request filter (default is false)
-igo.cmo_request_filter=

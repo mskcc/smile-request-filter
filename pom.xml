@@ -37,7 +37,7 @@
     <jackson.version>2.11.2</jackson.version>
     <!-- metadb messaging -->
     <cmo_metadb_messaging_java.group>com.github.mskcc</cmo_metadb_messaging_java.group>
-    <cmo_metadb_messaging_java.version>fba865539deb5c2f25e1cf2b845f4460c3917139</cmo_metadb_messaging_java.version>
+    <cmo_metadb_messaging_java.version>v1.3</cmo_metadb_messaging_java.version>
     <!-- metadb common centralized config properties -->
     <cmo_metadb_common.group>com.github.mskcc</cmo_metadb_common.group>
     <cmo_metadb_common.version>v1.6</cmo_metadb_common.version>
@@ -156,6 +156,7 @@
           <failsOnError>true</failsOnError>
           <linkXRef>false</linkXRef>
           <useFile>checkstyle_report.txt</useFile>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
         </configuration>
         <executions>
           <execution>

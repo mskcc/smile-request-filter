@@ -5,9 +5,16 @@ public class MockJsonTestData {
     private String filepath;
     private String description;
     private String jsonString;
-    
+
     public MockJsonTestData() {}
-    
+
+    /**
+     * MockJsonTestData constructor.
+     * @param identifier
+     * @param filepath
+     * @param description
+     * @param jsonString
+     */
     public MockJsonTestData(String identifier, String filepath, String description, String jsonString) {
         this.identifier = identifier;
         this.filepath = filepath;
@@ -46,5 +53,5 @@ public class MockJsonTestData {
     public void setJsonString(String jsonString) {
         this.jsonString = jsonString;
     }
-    
+
 }
