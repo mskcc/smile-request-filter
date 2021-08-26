@@ -85,17 +85,23 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                         if (isCmoRequest(requestJson)) {
                             LOG.info("Handling CMO-specific sanity checking...");
                             if (passCheck) {
+                                LOG.info("Sanity check passed, publishing to: " + CMO_LABEL_GENERATOR_TOPIC);
                                 messagingGateway.publish(requestId,
                                     CMO_LABEL_GENERATOR_TOPIC,
                                     filteredRequestJson);
+                            } else {
+                                LOG.error("Sanity check failed on request: " + requestId);
                             }
 
                         } else {
                             LOG.info("Handling non-CMO request...");
                             if (passCheck) {
+                                LOG.info("Sanity check passed, publishing to: " + IGO_NEW_REQUEST_TOPIC);
                                 messagingGateway.publish(requestId,
                                         IGO_NEW_REQUEST_TOPIC,
                                         filteredRequestJson);
+                            } else {
+                                LOG.error("Sanity check failed on request: " + requestId);
                             }
                         }
                     }
@@ -184,11 +190,11 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
 
     private Boolean isCmoRequest(String requestJson) throws JsonProcessingException {
         Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
-        if (requestJsonMap.get("cmoRequest") == null
-                || Strings.isBlank(requestJsonMap.get("cmoRequest").toString())) {
+        if (requestJsonMap.get("isCmoRequest") == null
+                || Strings.isBlank(requestJsonMap.get("isCmoRequest").toString())) {
             return Boolean.FALSE;
         }
-        return Boolean.valueOf(requestJsonMap.get("cmoRequest").toString());
+        return Boolean.valueOf(requestJsonMap.get("isCmoRequest").toString());
     }
 
     private String getRequestIdFromRequestJson(String requestJson) throws JsonProcessingException {
