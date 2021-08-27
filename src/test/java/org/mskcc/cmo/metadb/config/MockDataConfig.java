@@ -57,8 +57,8 @@ public class MockDataConfig {
 
     /**
      * Generates the mocked request json data map;
-     * @return
-     * @throws IOException
+     * @return Map
+     * @throws IOException 
      */
     @Bean(name = "mockedRequestJsonDataMap")
     public Map<String, MockJsonTestData> mockedRequestJsonDataMap() throws IOException {
