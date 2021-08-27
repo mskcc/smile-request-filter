@@ -148,11 +148,11 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     private boolean isCmoRequest(Map<String, Object> requestJsonMap) {
-        if (requestJsonMap.get("cmoRequest") == null
-                || Strings.isBlank(requestJsonMap.get("cmoRequest").toString())) {
+        if (requestJsonMap.get("isCmoRequest") == null
+                || Strings.isBlank(requestJsonMap.get("isCmoRequest").toString())) {
             return Boolean.FALSE;
         }
-        return Boolean.valueOf(requestJsonMap.get("cmoRequest").toString());
+        return Boolean.valueOf(requestJsonMap.get("isCmoRequest").toString());
     }
 
     private boolean hasRequestId(Map<String, Object> requestJsonMap) {
@@ -247,9 +247,11 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             throws JsonMappingException, JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         if (sampleMap.containsKey("cmoSampleIdFields")) {
-            Map<String, String> cmoSampleIdfields = mapper.convertValue(
+            Map<String, String> cmoSampleIdFields = mapper.convertValue(
                     sampleMap.get("cmoSampleIdFields"), Map.class);
-            return !Strings.isBlank(cmoSampleIdfields.get("naToExtract"));
+            // relax the check on naToExtract and instead see if field is simply present
+            // if naToExtract field is present but empty then the label generator assumes DNA
+            return cmoSampleIdFields.containsKey("naToExtract");
         }
         return Boolean.FALSE;
     }
