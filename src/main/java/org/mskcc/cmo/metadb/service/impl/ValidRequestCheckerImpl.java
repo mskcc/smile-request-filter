@@ -87,8 +87,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         // log request with request status logger but allow request to be published
         if (validSampleList.size() > 0) {
             if (validSampleList.size() < numOfSamples) {
-                String newSamplesString = mapper.writeValueAsString(validSampleList.toArray(new Object[0]));
-                requestJsonMap.replace("samples", newSamplesString);
+                requestJsonMap.replace("samples", validSampleList.toArray(new Object[0]));
                 LOG.info("CMO request passed sanity checking - missing samples...");
                 requestStatusLogger.logRequestStatus(requestJson,
                         RequestStatusLogger.StatusType.CMO_REQUEST_MISSING_REQ_FIELDS);
