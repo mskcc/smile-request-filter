@@ -97,7 +97,8 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                             LOG.info("Handling non-CMO request...");
                             if (passCheck) {
                                 LOG.info("Sanity check passed, publishing to: " + IGO_NEW_REQUEST_TOPIC);
-                                messagingGateway.publish(IGO_NEW_REQUEST_TOPIC,
+                                messagingGateway.publish(requestId + "_" + IGO_NEW_REQUEST_TOPIC,
+                                        IGO_NEW_REQUEST_TOPIC,
                                         filteredRequestJson);
                             } else {
                                 LOG.error("Sanity check failed on request: " + requestId);
