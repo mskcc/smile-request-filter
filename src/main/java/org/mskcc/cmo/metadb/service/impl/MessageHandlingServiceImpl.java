@@ -86,7 +86,7 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                             LOG.info("Handling CMO-specific sanity checking...");
                             if (passCheck) {
                                 LOG.info("Sanity check passed, publishing to: " + CMO_LABEL_GENERATOR_TOPIC);
-                                messagingGateway.publish(requestId,
+                                messagingGateway.publish(requestId + "_REQUESTFILTER",
                                     CMO_LABEL_GENERATOR_TOPIC,
                                     filteredRequestJson);
                             } else {
@@ -97,7 +97,7 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                             LOG.info("Handling non-CMO request...");
                             if (passCheck) {
                                 LOG.info("Sanity check passed, publishing to: " + IGO_NEW_REQUEST_TOPIC);
-                                messagingGateway.publish(requestId + "_" + IGO_NEW_REQUEST_TOPIC,
+                                messagingGateway.publish(requestId + "_REQUESTFILTER",
                                         IGO_NEW_REQUEST_TOPIC,
                                         filteredRequestJson);
                             } else {
