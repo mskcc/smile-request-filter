@@ -11,7 +11,8 @@
   "dataAnalystEmail": "dexterp@mskcc.org",
   "otherContactEmails": "dexterp@mskcc.org",
   "dataAccessEmails": "",
-  "cmoRequest": "true",
+  "isCmoRequest": true,
+  "bicAnalysis": false,
   "qcAccessEmails": "",
   "pooledNormals": [
     "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TAGCTTGA/FFPEPOOLEDNORMAL_IGO_GENESET101_TAGCTTGA_S23_R1_001.fastq.gz",
@@ -33,6 +34,7 @@
       "sampleName": "XXX002_P3_12345_L1",
       "cmoSampleClass": "Primary",
       "cmoPatientId": "C-MP789JR",
+      "oncoTreeCode": "CLL",
       "investigatorSampleId": "XXX002_P3_12345_L1",
       "tumorOrNormal": "Tumor",
       "tissueLocation": "",
@@ -42,12 +44,14 @@
       "collectionYear": "",
       "sex": "F",
       "species": "Human",
+      "sampleType": "Blood",
       "tubeId": "",
       "baitSet": "GENESET101_BAITS",
       "qcReports": [],
       "cmoSampleIdFields": {
   		"naToExtract": "testingNaToExtractvalue",
-  		"normalizedPatientId": "testingNormalizedPatientIdvalue"
+  		"normalizedPatientId": "testingNormalizedPatientIdvalue",
+  		"sampleType": "PDX"
 		},
       "libraries": [
         {
@@ -84,10 +88,11 @@
       "sampleName": "01-0012345a",
       "cmoSampleClass": "Normal",
       "cmoPatientId": "C-MP789JR",
+      "oncoTreeCode": "CLL",
       "investigatorSampleId": "01-0012345a",
       "tumorOrNormal": "Normal",
       "tissueLocation": "",
-      "specimenType": "XenograftDerivedCellLine",
+      "specimenType": "Blood",
       "sampleOrigin": "Whole Blood",
       "preservation": "Frozen",
       "collectionYear": "",
@@ -98,7 +103,8 @@
       "qcReports": [],
       "cmoSampleIdFields": {
   		"naToExtract": "testingNaToExtractvalue",
-  		"normalizedPatientId": "testingNormalizedPatientIdvalue"
+  		"normalizedPatientId": "testingNormalizedPatientIdvalue",
+  		"sampleType": "Blood"
 		},
       "libraries": [
         {
@@ -135,13 +141,15 @@
       "sampleName": "XXX002_P1_12348a_R_43",
       "cmoSampleClass": "Primary",
       "cmoPatientId": "C-8DH24X",
+      "oncoTreeCode": "COAD",
       "investigatorSampleId": "XXX002_P1_12348a_R_43",
       "tumorOrNormal": "Tumor",
       "tissueLocation": "",
-      "specimenType": "exosome",
+      "specimenType": "PDX",
       "sampleOrigin": "Tissue",
       "preservation": "Frozen",
       "collectionYear": "",
+      "sampleType": "Pooled Library",
       "sex": "M",
       "species": "Human",
       "tubeId": "",
@@ -149,7 +157,8 @@
       "qcReports": [],
       "cmoSampleIdFields": {
   		"naToExtract": "testingNaToExtractvalue",
-  		"normalizedPatientId": "testingNormalizedPatientIdvalue"
+  		"normalizedPatientId": "testingNormalizedPatientIdvalue",
+  		"sampleType": "PDX"
 		},
       "libraries": [
         {
@@ -186,10 +195,11 @@
       "sampleName": "01-XXXXXXXa",
       "cmoSampleClass": "Normal",
       "cmoPatientId": "C-8DH24X",
+      "oncoTreeCode": "COAD",
       "investigatorSampleId": "01-XXXXXXXa",
       "tumorOrNormal": "Normal",
       "tissueLocation": "",
-      "specimenType": null,
+      "specimenType": "Blood",
       "sampleOrigin": "Whole Blood",
       "preservation": "Frozen",
       "collectionYear": "",
@@ -200,7 +210,8 @@
       "qcReports": [],
       "cmoSampleIdFields": {
   		"naToExtract": "testingNaToExtractvalue",
-  		"normalizedPatientId": "testingNormalizedPatientIdvalue"
+  		"normalizedPatientId": "testingNormalizedPatientIdvalue",
+  		"sampleType": "Blood"
 		},
       "libraries": [
         {
@@ -214,7 +225,7 @@
           "captureName": "Pool-MOCKREQUEST1_B-Tube7_1",
           "runs": [
             {
-              "runMode": "HiSeq High Output",
+              "runMode": "HiSeq High Output",	
               "runId": "RUNID_0123",
               "flowCellId": "X5KL2KKAY",
               "readLength": "",

@@ -1,6 +1,6 @@
 {
   "requestId": "MOCKREQUEST1_B",
-  "recipe": "GENESET101",
+  "recipe": "",
   "projectManagerName": "Bar, Foo",
   "piEmail": "request1pi@mskcc.org",
   "labHeadName": "Foo Bar",
@@ -11,7 +11,8 @@
   "dataAnalystEmail": "dexterp@mskcc.org",
   "otherContactEmails": "dexterp@mskcc.org",
   "dataAccessEmails": "",
-  "cmoRequest": "true",
+  "isCmoRequest": true,
+  "bicAnalysis": false,
   "qcAccessEmails": "",
   "pooledNormals": [
     "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TAGCTTGA/FFPEPOOLEDNORMAL_IGO_GENESET101_TAGCTTGA_S23_R1_001.fastq.gz",
@@ -31,14 +32,15 @@
       "igoId": "MOCKREQUEST1_B_1",
       "cmoSampleName": "C-MP789JR-X001-d",
       "sampleName": "XXX002_P3_12345_L1",
-      "cmoSampleClass": "Primary",
+      "oncoTreeCode": "CLL",
+      "cmoSampleClass": null,
       "cmoPatientId": "C-MP789JR",
       "investigatorSampleId": "XXX002_P3_12345_L1",
       "tumorOrNormal": "Tumor",
       "tissueLocation": "",
-      "specimenType": "wrongValue",
-      "sampleOrigin": "wrongValue",
-      "preservation": "wrongValue",
+      "specimenType": "",
+      "sampleOrigin": null,
+      "preservation": "Frozen",
       "collectionYear": "",
       "sex": "F",
       "species": "Human",
@@ -46,13 +48,14 @@
       "baitSet": null,
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract": "wrongValue",
-  		"normalizedPatientId": "wrongValue"
+  		"naToExtract": "testingNaToExtractvalue",
+  		"normalizedPatientId": "testingNormalizedPatientIdvalue",
+  		"sampleType": ""
 		},
       "libraries": [
         {
           "barcodeId": "IDT29",
-          "barcodeIndex": "ATTGAGGA",
+          "barcodeIndex": null,
           "libraryIgoId": "MOCKREQUEST1_B_1_1_1_1",
           "libraryVolume": 35.0,
           "libraryConcentrationNgul": 34.8,
@@ -82,23 +85,24 @@
       "igoId": "MOCKREQUEST1_B_2",
       "cmoSampleName": "C-MP789JR-N001-d",
       "sampleName": "01-0012345a",
-      "cmoSampleClass": "wrongValue",
+      "cmoSampleClass": "Normal",
+      "oncoTreeCode": "CLL",
       "cmoPatientId": "C-MP789JR",
       "investigatorSampleId": "01-0012345a",
       "tumorOrNormal": "Normal",
       "tissueLocation": "",
-      "specimenType": "wrongValue",
-      "sampleOrigin": "wrongValue",
-      "preservation": "wrongValue",
+      "specimenType": null,
+      "sampleOrigin": "",
+      "preservation": "Frozen",
       "collectionYear": "",
       "sex": "F",
       "species": "Human",
       "tubeId": "",
-      "baitSet": null,
+      "baitSet": "GENESET101_BAITS",
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract": "wrongValue",
-  		"normalizedPatientId": "wrongValue"
+  		"naToExtract": "",
+  		"normalizedPatientId": ""
 		},
       "libraries": [
         {
@@ -133,14 +137,15 @@
       "igoId": "MOCKREQUEST1_B_3",
       "cmoSampleName": "C-8DH24X-X001-d",
       "sampleName": "XXX002_P1_12348a_R_43",
-      "cmoSampleClass": "Primary",
+      "cmoSampleClass": "",
+      "oncoTreeCode": "COAD",
       "cmoPatientId": "C-8DH24X",
       "investigatorSampleId": "XXX002_P1_12348a_R_43",
       "tumorOrNormal": "Tumor",
       "tissueLocation": "",
-      "specimenType": "wrongValue",
-      "sampleOrigin": "Tissue",
-      "preservation": "Frozen",
+      "specimenType": "",
+      "sampleOrigin": "",
+      "preservation": "",
       "collectionYear": "",
       "sex": "M",
       "species": "Human",
@@ -148,8 +153,9 @@
       "baitSet": "",
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract": "testingNaToExtractvalue",
-  		"normalizedPatientId": "testingNormalizedPatientIdvalue"
+  		"naToExtract": "",
+  		"normalizedPatientId": "",
+  		"sampleType": ""
 		},
       "libraries": [
         {
@@ -185,26 +191,28 @@
       "cmoSampleName": "C-8DH24X-N001-d",
       "sampleName": "01-XXXXXXXa",
       "cmoSampleClass": "Normal",
+      "oncoTreeCode": "COAD",
       "cmoPatientId": "C-8DH24X",
       "investigatorSampleId": "01-XXXXXXXa",
       "tumorOrNormal": "Normal",
       "tissueLocation": "",
       "specimenType": null,
       "sampleOrigin": null,
-      "preservation": null,
+      "preservation": "Frozen",
       "collectionYear": "",
       "sex": "M",
       "species": "Human",
       "tubeId": "",
-      "baitSet": "",
+      "baitSet": "GENESET101_BAITS",
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract": "wrongValue",
-  		"normalizedPatientId": "wrongValue"
+  		"naToExtract": "",
+  		"normalizedPatientId": null,
+  		"sampleType": null
 		},
       "libraries": [
         {
-          "barcodeId": "TNG65",
+          "barcodeId": null,
           "barcodeIndex": "TGGAACAA",
           "libraryIgoId": "MOCKREQUEST1_B_4_1_1_1",
           "libraryVolume": 35.0,
