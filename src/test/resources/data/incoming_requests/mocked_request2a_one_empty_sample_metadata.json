@@ -12,6 +12,8 @@
   "otherContactEmails": "preclinical_group_shared@mskcc.org",
   "dataAccessEmails": "",
   "qcAccessEmails": "",
+  "isCmoRequest": true,
+  "bicAnalysis": false,
   "pooledNormals": [
     "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT/FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT_S118_R1_001.fastq.gz",
     "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT/FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT_S118_R2_001.fastq.gz",
@@ -29,6 +31,7 @@
       "investigatorSampleId": "",
       "tumorOrNormal": "",
       "tissueLocation": "",
+      "oncoTreeCode": "",
       "specimenType": "",
       "sampleOrigin": "",
       "preservation": "",
@@ -46,7 +49,8 @@
       ],
       "cmoSampleIdFields": {
   		"naToExtract": "",
-  		"normalizedPatientId": ""
+  		"normalizedPatientId": "",
+  		"sampleType": ""
 		},
       "libraries": [
         {

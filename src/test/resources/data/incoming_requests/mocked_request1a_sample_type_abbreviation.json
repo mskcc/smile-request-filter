@@ -11,7 +11,8 @@
   "dataAnalystEmail": "dexterp@mskcc.org",
   "otherContactEmails": "dexterp@mskcc.org",
   "dataAccessEmails": "",
-  "cmoRequest": "true",
+  "isCmoRequest": true,
+  "bicAnalysis": false,
   "qcAccessEmails": "",
   "pooledNormals": [
     "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TAGCTTGA/FFPEPOOLEDNORMAL_IGO_GENESET101_TAGCTTGA_S23_R1_001.fastq.gz",
@@ -33,21 +34,23 @@
       "sampleName": "XXX002_P3_12345_L1",
       "cmoSampleClass": "Primary",
       "cmoPatientId": "C-MP789JR",
+      "oncoTreeCode": "CLL",
       "investigatorSampleId": "XXX002_P3_12345_L1",
-      "tumorOrNormal": "",
+      "tumorOrNormal": "Tumor",
       "tissueLocation": "",
-      "specimenType": "",
-      "sampleOrigin": "",
+      "specimenType": "PDX",
+      "sampleOrigin": "Tissue",
       "preservation": "Frozen",
       "collectionYear": "",
       "sex": "F",
       "species": "Human",
       "tubeId": "",
-      "baitSet": "",
+      "baitSet": "GENESET101_BAITS",
       "qcReports": [],
       "cmoSampleIdFields": {
   		"naToExtract": "testingNaToExtractvalue",
-  		"normalizedPatientId": "testingNormalizedPatientIdvalue"
+  		"normalizedPatientId": "testingNormalizedPatientIdvalue",
+  		"sampleType": "PDX"
 		},
       "libraries": [
         {
@@ -82,13 +85,14 @@
       "igoId": "MOCKREQUEST1_B_2",
       "cmoSampleName": "C-MP789JR-N001-d",
       "sampleName": "01-0012345a",
-      "cmoSampleClass": null,
+      "cmoSampleClass": "Normal",
       "cmoPatientId": "C-MP789JR",
+      "oncoTreeCode": "CLL",
       "investigatorSampleId": "01-0012345a",
       "tumorOrNormal": "Normal",
       "tissueLocation": "",
-      "specimenType": null,
-      "sampleOrigin": null,
+      "specimenType": "XenograftDerivedCellLine",
+      "sampleOrigin": "Whole Blood",
       "preservation": "Frozen",
       "collectionYear": "",
       "sex": "F",
@@ -97,8 +101,9 @@
       "baitSet": "GENESET101_BAITS",
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract": null,
-  		"normalizedPatientId": ""
+  		"naToExtract": "testingNaToExtractvalue",
+  		"normalizedPatientId": "testingNormalizedPatientIdvalue",
+  		"sampleType": "XenograftDerivedCellLine"
 		},
       "libraries": [
         {
@@ -135,10 +140,11 @@
       "sampleName": "XXX002_P1_12348a_R_43",
       "cmoSampleClass": "Primary",
       "cmoPatientId": "C-8DH24X",
+      "oncoTreeCode": "COAD",
       "investigatorSampleId": "XXX002_P1_12348a_R_43",
       "tumorOrNormal": "Tumor",
       "tissueLocation": "",
-      "specimenType": "PDX",
+      "specimenType": "exosome",
       "sampleOrigin": "Tissue",
       "preservation": "Frozen",
       "collectionYear": "",
@@ -149,7 +155,8 @@
       "qcReports": [],
       "cmoSampleIdFields": {
   		"naToExtract": "testingNaToExtractvalue",
-  		"normalizedPatientId": "testingNormalizedPatientIdvalue"
+  		"normalizedPatientId": "testingNormalizedPatientIdvalue",
+  		"sampleType": "Exosome"
 		},
       "libraries": [
         {
@@ -186,10 +193,11 @@
       "sampleName": "01-XXXXXXXa",
       "cmoSampleClass": "Normal",
       "cmoPatientId": "C-8DH24X",
+      "oncoTreeCode": "COAD",
       "investigatorSampleId": "01-XXXXXXXa",
       "tumorOrNormal": "Normal",
       "tissueLocation": "",
-      "specimenType": "Blood",
+      "specimenType": null,
       "sampleOrigin": "Whole Blood",
       "preservation": "Frozen",
       "collectionYear": "",

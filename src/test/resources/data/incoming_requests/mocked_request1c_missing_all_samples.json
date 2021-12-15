@@ -11,7 +11,8 @@
   "dataAnalystEmail": "dexterp@mskcc.org",
   "otherContactEmails": "dexterp@mskcc.org",
   "dataAccessEmails": "",
-  "cmoRequest": "true",
+  "isCmoRequest": true,
+  "bicAnalysis": false,
   "qcAccessEmails": "",
   "pooledNormals": [
     "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TAGCTTGA/FFPEPOOLEDNORMAL_IGO_GENESET101_TAGCTTGA_S23_R1_001.fastq.gz",
@@ -32,22 +33,24 @@
       "cmoSampleName": "C-MP789JR-X001-d",
       "sampleName": "XXX002_P3_12345_L1",
       "cmoSampleClass": "Primary",
+      "oncoTreeCode": "CLL",
       "cmoPatientId": "C-MP789JR",
       "investigatorSampleId": "XXX002_P3_12345_L1",
       "tumorOrNormal": "Tumor",
       "tissueLocation": "",
-      "specimenType": "PDX",
-      "sampleOrigin": "Tissue",
-      "preservation": "Frozen",
+      "specimenType": "wrongValue",
+      "sampleOrigin": "wrongValue",
+      "preservation": "wrongValue",
       "collectionYear": "",
       "sex": "F",
       "species": "Human",
       "tubeId": "",
-      "baitSet": "GENESET101_BAITS",
+      "baitSet": null,
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract": "testingNaToExtractvalue",
-  		"normalizedPatientId": "testingNormalizedPatientIdvalue"
+  		"naToExtract": "wrongValue",
+  		"normalizedPatientId": "wrongValue",
+  		"sampleType": "wrongValue"
 		},
       "libraries": [
         {
@@ -82,23 +85,25 @@
       "igoId": "MOCKREQUEST1_B_2",
       "cmoSampleName": "C-MP789JR-N001-d",
       "sampleName": "01-0012345a",
-      "cmoSampleClass": "Normal",
+      "oncoTreeCode": "CLL",
+      "cmoSampleClass": "wrongValue",
       "cmoPatientId": "C-MP789JR",
       "investigatorSampleId": "01-0012345a",
       "tumorOrNormal": "Normal",
       "tissueLocation": "",
-      "specimenType": "Blood",
-      "sampleOrigin": "Whole Blood",
-      "preservation": "Frozen",
+      "specimenType": "wrongValue",
+      "sampleOrigin": "wrongValue",
+      "preservation": "wrongValue",
       "collectionYear": "",
       "sex": "F",
       "species": "Human",
       "tubeId": "",
-      "baitSet": "GENESET101_BAITS",
+      "baitSet": null,
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract": "testingNaToExtractvalue",
-  		"normalizedPatientId": "testingNormalizedPatientIdvalue"
+  		"naToExtract": "wrongValue",
+  		"normalizedPatientId": "wrongValue",
+  		"sampleType": "wrongValue"
 		},
       "libraries": [
         {
@@ -134,22 +139,24 @@
       "cmoSampleName": "C-8DH24X-X001-d",
       "sampleName": "XXX002_P1_12348a_R_43",
       "cmoSampleClass": "Primary",
+      "oncoTreeCode": "COAD",
       "cmoPatientId": "C-8DH24X",
       "investigatorSampleId": "XXX002_P1_12348a_R_43",
       "tumorOrNormal": "Tumor",
       "tissueLocation": "",
-      "specimenType": "PDX",
+      "specimenType": "wrongValue",
       "sampleOrigin": "Tissue",
       "preservation": "Frozen",
       "collectionYear": "",
       "sex": "M",
       "species": "Human",
       "tubeId": "",
-      "baitSet": "GENESET101_BAITS",
+      "baitSet": "",
       "qcReports": [],
       "cmoSampleIdFields": {
   		"naToExtract": "testingNaToExtractvalue",
-  		"normalizedPatientId": "testingNormalizedPatientIdvalue"
+  		"normalizedPatientId": "testingNormalizedPatientIdvalue",
+  		"sampleType": "wrongValue"
 		},
       "libraries": [
         {
@@ -185,22 +192,23 @@
       "cmoSampleName": "C-8DH24X-N001-d",
       "sampleName": "01-XXXXXXXa",
       "cmoSampleClass": "Normal",
+      "oncoTreeCode": "COAD",
       "cmoPatientId": "C-8DH24X",
       "investigatorSampleId": "01-XXXXXXXa",
       "tumorOrNormal": "Normal",
       "tissueLocation": "",
-      "specimenType": "Blood",
-      "sampleOrigin": "Whole Blood",
-      "preservation": "Frozen",
+      "specimenType": null,
+      "sampleOrigin": null,
+      "preservation": null,
       "collectionYear": "",
       "sex": "M",
       "species": "Human",
       "tubeId": "",
-      "baitSet": "GENESET101_BAITS",
+      "baitSet": "",
       "qcReports": [],
       "cmoSampleIdFields": {
-  		"naToExtract": "testingNaToExtractvalue",
-  		"normalizedPatientId": "testingNormalizedPatientIdvalue"
+  		"naToExtract": "wrongValue",
+  		"normalizedPatientId": "wrongValue"
 		},
       "libraries": [
         {

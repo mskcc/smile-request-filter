@@ -31,6 +31,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     @Value("${igo.cmo_request_filter:false}")
     private Boolean igoCmoRequestFilter;
 
+    private ObjectMapper mapper = new ObjectMapper();
     private static final Log LOG = LogFactory.getLog(ValidRequestCheckerImpl.class);
 
     /**
@@ -230,13 +231,22 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      */
     private boolean hasSampleType(Map<String, String> sampleMap)
             throws JsonMappingException, JsonProcessingException {
-        if (Strings.isBlank(sampleMap.get("sampleType"))) {
+        String sampleType = null;
+        if (sampleMap.containsKey("cmoSampleIdFields")) {
+            Map<String, String> cmoSampleIdFields = mapper.convertValue(
+                    sampleMap.get("cmoSampleIdFields"), Map.class);
+            // relax the check on naToExtract and instead see if field is simply present
+            // if naToExtract field is present but empty then the label generator assumes DNA
+            sampleType = cmoSampleIdFields.get("sampleType");
+        }
+
+        if (Strings.isBlank(sampleType)) {
             return hasNAtoExtract(sampleMap);
         }
-        if (SampleType.POOLED_LIBRARY.getValue().equalsIgnoreCase(sampleMap.get("sampleType"))) {
+        if (SampleType.POOLED_LIBRARY.getValue().equalsIgnoreCase(sampleType)) {
             return hasBaitSet(sampleMap);
         }
-        if (EnumUtils.isValidEnumIgnoreCase(SampleType.class, sampleMap.get("sampleType"))) {
+        if (EnumUtils.isValidEnumIgnoreCase(SampleType.class, sampleType)) {
             return Boolean.TRUE;
         }
         return Boolean.FALSE;
