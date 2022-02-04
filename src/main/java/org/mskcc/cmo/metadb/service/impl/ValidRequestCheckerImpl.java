@@ -100,14 +100,15 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                 RequestStatusLogger.StatusType.CMO_REQUEST_FAILED_SANITY_CHECK);
         return null;
     }
-    
+
     /**
      * Evaluates request metadata and returns a boolean based on whether the request data
      * passes all sanity checks.
      * @throws JsonProcessingException or JsonMappingException
      */
     @Override
-    public Boolean isValidRequestMetadataJson(String requestJson) throws JsonMappingException, JsonProcessingException {
+    public Boolean isValidRequestMetadataJson(String requestJson)
+            throws JsonMappingException, JsonProcessingException {
         if (StringUtils.isAllBlank(requestJson)) {
             return false;
         }

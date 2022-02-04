@@ -1,6 +1,8 @@
 package org.mskcc.cmo.metadb.service.impl;
 
-import java.io.IOException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.nats.client.Message;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -10,9 +12,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.util.Strings;
 import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.cmo.metadb.service.UpdateMessageHandlingService;
@@ -21,44 +23,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.nats.client.Message;
-
 @Service
 public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingService {
     @Value("${smile.validator_igo_sample_update_topic}")
     private String VALIDATOR_SAMPLE_UPDATE_TOPIC;
-    
+
     @Value("${smile.cmo_sample_update_topic}")
     private String CMO_SAMPLE_UPDATE_TOPIC;
-    
+
     @Value("${smile.server_igo_sample_update_topic}")
     private String SERVER_SAMPLE_UPDATE_TOPIC;
-    
+
     @Value("${smile.validator_igo_request_update_topic}")
     private String VALIDATOR_REQUEST_UPDATE_TOPIC;
-    
+
     @Value("${smile.server_igo_request-update_topic}")
     private String SERVER_REQUEST_UPDATE_TOPIC;
-    
+
     @Value("${num.new_request_handler_threads}")
     private int NUM_NEW_REQUEST_HANDLERS;
-    
+
     @Autowired
     private ValidRequestChecker validRequestChecker;
-    
+
     private static boolean initialized = false;
     private static Gateway messagingGateway;
     private static final Log LOG = LogFactory.getLog(MessageHandlingServiceImpl.class);
     private final ObjectMapper mapper = new ObjectMapper();
     private static final ExecutorService exec = Executors.newCachedThreadPool();
     private static volatile boolean shutdownInitiated;
-    
+
     private static CountDownLatch requestUpdateFilterHandlerShutdownLatch;
     private static final BlockingQueue<String> requestUpdateFilterQueue =
             new LinkedBlockingQueue<String>();
-    
+
     private static CountDownLatch sampleUpdateFilterHandlerShutdownLatch;
     private static final BlockingQueue<String> sampleUpdateFilterQueue =
             new LinkedBlockingQueue<String>();
@@ -72,11 +70,12 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
             initializeMessageFilterHandlers();
             initialized = true;
         } else {
-            LOG.error("Messaging Handler Service has already been initialized, ignoring request or sample updates.\n");
+            LOG.error("Messaging Handler Service has already been initialized,"
+                    + "ignoring request or sample updates.\n");
         }
-        
+
     }
-    
+
     private void initializeMessageFilterHandlers() throws Exception {
         requestUpdateFilterHandlerShutdownLatch = new CountDownLatch(NUM_NEW_REQUEST_HANDLERS);
         final Phaser requestFilterPhaser = new Phaser();
@@ -86,7 +85,7 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
             exec.execute(new RequestUpdateFilterHandler(requestFilterPhaser));
         }
         requestFilterPhaser.arriveAndAwaitAdvance();
-        
+
         sampleUpdateFilterHandlerShutdownLatch = new CountDownLatch(NUM_NEW_REQUEST_HANDLERS);
         final Phaser sampleFilterPhaser = new Phaser();
         sampleFilterPhaser.register();
@@ -96,7 +95,7 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
         }
         sampleFilterPhaser.arriveAndAwaitAdvance();
     }
-    
+
     private class RequestUpdateFilterHandler implements Runnable {
         final Phaser phaser;
         boolean interrupted = false;
@@ -113,7 +112,7 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
                     String requestJson = requestUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
                         Boolean passCheck = validRequestChecker.isValidRequestMetadataJson(requestJson);
-                        
+
                         if (passCheck) {
                             LOG.info("Sanity check passed, publishing to: " + SERVER_REQUEST_UPDATE_TOPIC);
                             messagingGateway.publish(
@@ -135,7 +134,7 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
             requestUpdateFilterHandlerShutdownLatch.countDown();
         }
     }
-    
+
     private class SampleUpdateFilterHandler implements Runnable {
         final Phaser phaser;
         boolean interrupted = false;
@@ -151,12 +150,10 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
                 try {
                     String sampleJson = sampleUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (sampleJson != null) {
-                        Map<String, String> sampleMap = mapper.convertValue(sampleJson, Map.class);
-                        // Should the field be isCmoSample or isCmoRequest?
-                        // Boolean isCmoSample = Boolean.valueOf(sampleMap.get("isCmoSample"));
-                        Boolean isCmoSample = Boolean.valueOf("true");
-                        Boolean hasRequestId = !sampleMap.get("igoRequestId").isEmpty();
-                        
+                        Map<String, String> sampleMap = mapper.readValue(sampleJson, Map.class);
+                        Boolean isCmoSample = isCmoSample(sampleJson);
+                        Boolean hasRequestId = hasRequestId(sampleJson);
+
                         if (isCmoSample) {
                             if (validRequestChecker.isValidCmoSample(sampleMap, isCmoSample, hasRequestId)) {
                                 LOG.info("Sanity check passed, publishing cmo sample"
@@ -167,7 +164,7 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
                             } else {
                                 LOG.error("Sanity check failed on cmo sample updates ");
                             }
-                            
+
                         } else {
                             if (validRequestChecker.isValidNonCmoSample(sampleMap)) {
                                 LOG.info("Sanity check passed, publishing non cmo"
@@ -178,7 +175,7 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
                             } else {
                                 LOG.error("Sanity check failed on non cmo updates ");
                             }
-                            
+
                         }
                     }
                     if (interrupted && sampleUpdateFilterQueue.isEmpty()) {
@@ -204,7 +201,7 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
         } else {
             LOG.error("Shutdown initiated, not accepting request: " + requestJson);
             throw new IllegalStateException("Shutdown initiated, not handling any more requests");
-        }        
+        }
     }
 
     @Override
@@ -217,10 +214,11 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
         } else {
             LOG.error("Shutdown initiated, not accepting sample: " + sampleJson);
             throw new IllegalStateException("Shutdown initiated, not handling any more samples");
-        }        
+        }
     }
-    
-    private void setupRequestUpdateFilterHandler(Gateway gateway, UpdateMessageHandlingService updateMessageHandlingService)
+
+    private void setupRequestUpdateFilterHandler(Gateway gateway,
+            UpdateMessageHandlingService updateMessageHandlingService)
             throws Exception {
         gateway.subscribe(VALIDATOR_REQUEST_UPDATE_TOPIC, Object.class, new MessageConsumer() {
             public void onMessage(Message msg, Object message) {
@@ -238,8 +236,9 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
             }
         });
     }
-    
-    private void setupSampleUpdateFilterHandler(Gateway gateway, UpdateMessageHandlingService updateMessageHandlingService)
+
+    private void setupSampleUpdateFilterHandler(Gateway gateway,
+            UpdateMessageHandlingService updateMessageHandlingService)
             throws Exception {
         gateway.subscribe(VALIDATOR_SAMPLE_UPDATE_TOPIC, Object.class, new MessageConsumer() {
             public void onMessage(Message msg, Object message) {
@@ -265,6 +264,24 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
         exec.shutdownNow();
         requestUpdateFilterHandlerShutdownLatch.await();
         sampleUpdateFilterHandlerShutdownLatch.await();
-        shutdownInitiated = true;        
+        shutdownInitiated = true;
+    }
+
+    private Boolean isCmoSample(String sampleJson) throws JsonProcessingException {
+        Map<String, Object> sampleJsonMap = mapper.readValue(sampleJson, Map.class);
+        if (sampleJsonMap.get("isCmoSample") == null
+                || Strings.isBlank(sampleJsonMap.get("isCmoSample").toString())) {
+            return Boolean.FALSE;
+        }
+        return Boolean.valueOf(sampleJsonMap.get("isCmoSample").toString());
+    }
+
+    private Boolean hasRequestId(String sampleJson) throws JsonProcessingException {
+        Map<String, Object> sampleJsonMap = mapper.readValue(sampleJson, Map.class);
+        if ((sampleJsonMap.get("igoRequestId") == null
+                || Strings.isBlank(sampleJsonMap.get("igoRequestId").toString()))) {
+            return Boolean.FALSE;
+        }
+        return Boolean.valueOf(sampleJsonMap.get("igoRequestId").toString());
     }
 }
