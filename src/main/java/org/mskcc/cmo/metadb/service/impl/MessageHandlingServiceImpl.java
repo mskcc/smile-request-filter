@@ -1,11 +1,9 @@
 package org.mskcc.cmo.metadb.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -15,7 +13,6 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.logging.log4j.util.Strings;
 import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.cmo.metadb.service.MessageHandlingService;
@@ -32,8 +29,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class MessageHandlingServiceImpl implements MessageHandlingService {
 
-    @Value("${metadb.request_filter_topic}")
-    private String METADB_REQUEST_FILTER_TOPIC;
+    @Value("${smile.request_filter_topic}")
+    private String SMILE_REQUEST_FILTER_TOPIC;
 
     @Value("${igo.cmo_label_generator_topic}")
     private String CMO_LABEL_GENERATOR_TOPIC;
@@ -77,12 +74,12 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                 try {
                     String requestJson = requestFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
-                        String requestId = getRequestIdFromRequestJson(requestJson);
+                        String requestId = validRequestChecker.getRequestId(requestJson);
                         String filteredRequestJson = validRequestChecker.getFilteredValidRequestJson(
                                 requestJson);
                         Boolean passCheck = (filteredRequestJson != null);
 
-                        if (isCmoRequest(requestJson)) {
+                        if (validRequestChecker.isCmo(requestJson)) {
                             LOG.info("Handling CMO-specific sanity checking...");
                             if (passCheck) {
                                 LOG.info("Sanity check passed, publishing to: " + CMO_LABEL_GENERATOR_TOPIC);
@@ -166,9 +163,9 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
 
     private void setupRequestFilterHandler(Gateway gateway, MessageHandlingService messageHandlingService)
         throws Exception {
-        gateway.subscribe(METADB_REQUEST_FILTER_TOPIC, Object.class, new MessageConsumer() {
+        gateway.subscribe(SMILE_REQUEST_FILTER_TOPIC, Object.class, new MessageConsumer() {
             public void onMessage(Message msg, Object message) {
-                LOG.info("Received message on topic: " + METADB_REQUEST_FILTER_TOPIC);
+                LOG.info("Received message on topic: " + SMILE_REQUEST_FILTER_TOPIC);
                 try {
                     String requestJson = mapper.readValue(
                             new String(msg.getData(), StandardCharsets.UTF_8),
@@ -176,7 +173,7 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                     messageHandlingService.requestFilterHandler(requestJson);
                 } catch (Exception e) {
                     LOG.error("Exception during processing of request on topic: "
-                            + METADB_REQUEST_FILTER_TOPIC, e);
+                            + SMILE_REQUEST_FILTER_TOPIC, e);
                     try {
                         requestStatusLogger.logRequestStatus(message.toString(),
                                 RequestStatusLogger.StatusType.REQUEST_PARSING_ERROR);
@@ -186,23 +183,5 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                 }
             }
         });
-    }
-
-    private Boolean isCmoRequest(String requestJson) throws JsonProcessingException {
-        Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
-        if (requestJsonMap.get("isCmoRequest") == null
-                || Strings.isBlank(requestJsonMap.get("isCmoRequest").toString())) {
-            return Boolean.FALSE;
-        }
-        return Boolean.valueOf(requestJsonMap.get("isCmoRequest").toString());
-    }
-
-    private String getRequestIdFromRequestJson(String requestJson) throws JsonProcessingException {
-        Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
-        if ((requestJsonMap.get("requestId") != null
-                && !Strings.isBlank(requestJsonMap.get("requestId").toString()))) {
-            return requestJsonMap.get("requestId").toString();
-        }
-        return null;
     }
 }
