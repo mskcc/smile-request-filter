@@ -15,10 +15,17 @@ nats.truststore_path=
 nats.key_password=
 nats.store_password=
 
-# messaging configuration
+# new request topics
 metadb.request_filter_topic=
 igo.new_request_topic=
 igo.cmo_label_generator_topic=
+
+# request and sample update topics
+smile.igo_sample_update_topic=
+smile.cmo-sample-update_topic=
+smile.igo-sample-update_topic=
+smile.igo_request_update_topic=
+smile.igo-request-update_topic=
 
 # threading
 num.new_request_handler_threads=
@@ -28,4 +35,3 @@ metadb.publishing_failures_filepath=
 
 # detailed consistency checking logger filepath
 metadb_req_filter.request_logger_filepath=
-

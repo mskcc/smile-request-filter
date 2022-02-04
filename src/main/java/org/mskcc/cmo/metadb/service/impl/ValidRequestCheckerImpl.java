@@ -100,6 +100,30 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                 RequestStatusLogger.StatusType.CMO_REQUEST_FAILED_SANITY_CHECK);
         return null;
     }
+    
+    /**
+     * Evaluates request metadata and returns a boolean based on whether the request data
+     * passes all sanity checks.
+     * @throws JsonProcessingException or JsonMappingException
+     */
+    @Override
+    public Boolean isValidRequestMetadataJson(String requestJson) throws JsonMappingException, JsonProcessingException {
+        if (StringUtils.isAllBlank(requestJson)) {
+            return false;
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
+        boolean isCmoRequest = isCmoRequest(requestJsonMap);
+        boolean hasRequestId = hasRequestId(requestJsonMap);
+
+        // if cmo filter is enabled then skip request if it is non-cmo
+        if (igoCmoRequestFilter && !isCmoRequest) {
+            LOG.info("CMO request filter enabled - skipping non-CMO request: "
+                    + requestJsonMap.get("requestId"));
+            return false;
+        }
+        return true;
+    }
 
     /**
      * Evaluates sample metadata and returns a boolean based on whether the sample data
@@ -114,7 +138,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      *   - normalized patient id
      * @throws JsonProcessingException or JsonMappingException
      */
-    private boolean isValidCmoSample(Map<String, String> sampleMap,
+    @Override
+    public boolean isValidCmoSample(Map<String, String> sampleMap,
             boolean isCmoRequest, boolean hasRequestId) throws JsonMappingException, JsonProcessingException {
         if (sampleMap == null || sampleMap.isEmpty()) {
             return Boolean.FALSE;
@@ -136,7 +161,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * - If bait set or normalized patient id are  missing then returns false.
      * @throws JsonProcessingException or JsonMappingException
      */
-    private boolean isValidNonCmoSample(Map<String, String> sampleMap)
+    @Override
+    public boolean isValidNonCmoSample(Map<String, String> sampleMap)
             throws JsonMappingException, JsonProcessingException {
         if (sampleMap == null
                 || sampleMap.isEmpty()
