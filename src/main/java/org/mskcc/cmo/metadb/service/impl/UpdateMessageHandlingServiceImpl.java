@@ -17,6 +17,7 @@ import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.cmo.metadb.service.UpdateMessageHandlingService;
 import org.mskcc.cmo.metadb.service.ValidRequestChecker;
+import org.mskcc.cmo.metadb.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,9 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
 
     @Autowired
     private ValidRequestChecker validRequestChecker;
+    
+    @Autowired
+    private RequestStatusLogger requestStatusLogger;
 
     private static boolean initialized = false;
     private static Gateway messagingGateway;
@@ -116,7 +120,10 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
                                     SERVER_REQUEST_UPDATE_TOPIC,
                                     requestJson);
                         } else {
-                            LOG.error("Sanity check failed on request updates ");
+                            LOG.error("Sanity check failed on request updates: "
+                                    + validRequestChecker.getRequestId(requestJson));
+                            requestStatusLogger.logRequestStatus(requestJson,
+                                    RequestStatusLogger.StatusType.REQUEST_UPDATE_FAILED_SANITY_CHECK);
                         }
                     }
                     if (interrupted && requestUpdateFilterQueue.isEmpty()) {
@@ -160,6 +167,8 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
                                         sampleJson);
                             } else {
                                 LOG.error("Sanity check failed on cmo sample updates ");
+                                requestStatusLogger.logRequestStatus(sampleJson,
+                                        RequestStatusLogger.StatusType.SAMPLE_UPDATE_FAILED_SANITY_CHECK);
                             }
 
                         } else {
@@ -170,9 +179,10 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
                                         SERVER_SAMPLE_UPDATE_TOPIC,
                                         sampleJson);
                             } else {
-                                LOG.error("Sanity check failed on non cmo updates ");
+                                LOG.error("Sanity check failed on non cmo sample updates ");
+                                requestStatusLogger.logRequestStatus(sampleJson,
+                                        RequestStatusLogger.StatusType.SAMPLE_UPDATE_FAILED_SANITY_CHECK);
                             }
-
                         }
                     }
                     if (interrupted && sampleUpdateFilterQueue.isEmpty()) {
@@ -228,7 +238,6 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
                 } catch (Exception e) {
                     LOG.error("Exception during processing of request on topic: "
                             + VALIDATOR_REQUEST_UPDATE_TOPIC, e);
-                    // TODO: should set ups a request status logger here
                 }
             }
         });

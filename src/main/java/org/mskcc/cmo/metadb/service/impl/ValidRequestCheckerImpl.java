@@ -210,21 +210,13 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
     private Boolean hasRequestId(Map<String, Object> jsonMap) throws JsonProcessingException {
         String requestId = getRequestId(jsonMap);
-        if ((requestId == null)
-                || Strings.isBlank(requestId)) {
-            return Boolean.FALSE;
-        }
-        return Boolean.TRUE;
+        return (requestId != null && !Strings.isBlank(requestId));
     }
     
     @Override
     public Boolean hasRequestId(String json) throws JsonProcessingException {
         String requestId = getRequestId(json);
-        if ((requestId == null)
-                || Strings.isBlank(requestId)) {
-            return Boolean.FALSE;
-        }
-        return Boolean.TRUE;
+        return (requestId != null && !Strings.isBlank(requestId));
     }
 
     private Boolean hasBaitSet(Map<String, String> sampleMap) {

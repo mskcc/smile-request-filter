@@ -21,11 +21,11 @@ igo.new_request_topic=
 igo.cmo_label_generator_topic=
 
 # request and sample update topics
-smile.igo_sample_update_topic=
+smile.validator_igo_sample_update_topic=
 smile.cmo_sample_update_topic=
-smile.igo_sample_update_topic=
-smile.igo_request_update_topic=
-smile.igo_request_update_topic=
+smile.server_igo_sample_update_topic=
+smile.validator_igo_request_update_topic=
+smile.server_igo_request-update_topic=
 
 # threading
 num.new_request_handler_threads=
