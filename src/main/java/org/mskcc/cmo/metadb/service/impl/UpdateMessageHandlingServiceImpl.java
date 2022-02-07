@@ -24,19 +24,19 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingService {
-    @Value("${smile.validator_igo_sample_update_topic}")
+    @Value("${igo.validate_sample_update_topic}")
     private String VALIDATOR_SAMPLE_UPDATE_TOPIC;
 
-    @Value("${smile.cmo_sample_update_topic}")
+    @Value("${igo.cmo_label_update_topic}")
     private String CMO_SAMPLE_UPDATE_TOPIC;
 
-    @Value("${smile.server_igo_sample_update_topic}")
+    @Value("${smile.sample_update_topic")
     private String SERVER_SAMPLE_UPDATE_TOPIC;
 
-    @Value("${smile.validator_igo_request_update_topic}")
+    @Value("${igo.validate_request_update_topic}")
     private String VALIDATOR_REQUEST_UPDATE_TOPIC;
 
-    @Value("${smile.server_igo_request-update_topic}")
+    @Value("${smile.request_update_topic}")
     private String SERVER_REQUEST_UPDATE_TOPIC;
 
     @Value("${num.new_request_handler_threads}")
@@ -44,7 +44,7 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
 
     @Autowired
     private ValidRequestChecker validRequestChecker;
-    
+
     @Autowired
     private RequestStatusLogger requestStatusLogger;
 

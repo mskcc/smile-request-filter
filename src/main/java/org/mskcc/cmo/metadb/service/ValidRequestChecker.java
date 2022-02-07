@@ -9,7 +9,7 @@ public interface ValidRequestChecker {
     String getFilteredValidRequestJson(String requestJson)
             throws JsonMappingException, JsonProcessingException, IOException;
     Boolean isValidRequestMetadataJson(String requestJson)
-            throws JsonMappingException, JsonProcessingException;
+            throws JsonMappingException, JsonProcessingException, IOException;
     Boolean isValidCmoSample(Map<String, String> sampleMap,
             boolean isCmoRequest, boolean hasRequestId) throws JsonMappingException, JsonProcessingException;
     Boolean isValidNonCmoSample(Map<String, String> sampleMap)

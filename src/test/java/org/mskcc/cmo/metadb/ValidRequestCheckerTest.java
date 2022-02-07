@@ -118,4 +118,24 @@ public class ValidRequestCheckerTest {
                 .getFilteredValidRequestJson(requestJson.getJsonString());
         Assert.assertNotNull(modifiedRequestJson);
     }
+
+    @Test
+    public void testGetRequestIdMissingRequestId() throws Exception {
+        String requestJson =
+                "{\"metaDbRequestId\": \"metaDbRequestIdValue\",  \"igoProjectId\": \"MOCKREQUEST1\"}";
+        String requestId = validRequestChecker.getRequestId(requestJson);
+        Assert.assertNull(requestId);
+    }
+
+    @Test
+    public void testGetRequestIdWithNullJson() throws Exception {
+        String requestId = validRequestChecker.getRequestId(null);
+        Assert.assertNull(requestId);
+    }
+
+    @Test
+    public void testGetRequestIdWithEmptyJsonString() throws Exception {
+        String requestId = validRequestChecker.getRequestId("");
+        Assert.assertNull(requestId);
+    }
 }
