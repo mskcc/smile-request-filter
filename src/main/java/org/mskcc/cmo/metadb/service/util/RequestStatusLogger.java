@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RequestStatusLogger {
-    @Value("${metadb_req_filter.request_logger_filepath}")
+    @Value("${req_filter.request_logger_filepath}")
     private String requestLoggerFilepath;
 
     @Autowired

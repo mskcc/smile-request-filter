@@ -6,12 +6,15 @@ import java.io.IOException;
 import java.util.Map;
 
 public interface ValidRequestChecker {
-    public String getFilteredValidRequestJson(String requestJson)
+    String getFilteredValidRequestJson(String requestJson)
             throws JsonMappingException, JsonProcessingException, IOException;
-    public Boolean isValidRequestMetadataJson(String requestJson)
+    Boolean isValidRequestMetadataJson(String requestJson)
             throws JsonMappingException, JsonProcessingException;
-    public boolean isValidCmoSample(Map<String, String> sampleMap,
+    Boolean isValidCmoSample(Map<String, String> sampleMap,
             boolean isCmoRequest, boolean hasRequestId) throws JsonMappingException, JsonProcessingException;
-    public boolean isValidNonCmoSample(Map<String, String> sampleMap)
+    Boolean isValidNonCmoSample(Map<String, String> sampleMap)
             throws JsonMappingException, JsonProcessingException;
+    Boolean isCmo(String json) throws JsonProcessingException;
+    String getRequestId(String json) throws JsonProcessingException;
+    Boolean hasRequestId(String json) throws JsonProcessingException;
 }

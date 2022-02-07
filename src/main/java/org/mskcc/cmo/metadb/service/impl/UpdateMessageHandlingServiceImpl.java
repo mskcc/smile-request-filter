@@ -1,6 +1,5 @@
 package org.mskcc.cmo.metadb.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
 import java.nio.charset.StandardCharsets;
@@ -14,7 +13,6 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.logging.log4j.util.Strings;
 import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.cmo.metadb.service.UpdateMessageHandlingService;
@@ -73,7 +71,6 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
             LOG.error("Messaging Handler Service has already been initialized,"
                     + "ignoring request or sample updates.\n");
         }
-
     }
 
     private void initializeMessageFilterHandlers() throws Exception {
@@ -151,8 +148,8 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
                     String sampleJson = sampleUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (sampleJson != null) {
                         Map<String, String> sampleMap = mapper.readValue(sampleJson, Map.class);
-                        Boolean isCmoSample = isCmoSample(sampleJson);
-                        Boolean hasRequestId = hasRequestId(sampleJson);
+                        Boolean isCmoSample = validRequestChecker.isCmo(sampleJson);
+                        Boolean hasRequestId = validRequestChecker.hasRequestId(sampleJson);
 
                         if (isCmoSample) {
                             if (validRequestChecker.isValidCmoSample(sampleMap, isCmoSample, hasRequestId)) {
@@ -265,23 +262,5 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
         requestUpdateFilterHandlerShutdownLatch.await();
         sampleUpdateFilterHandlerShutdownLatch.await();
         shutdownInitiated = true;
-    }
-
-    private Boolean isCmoSample(String sampleJson) throws JsonProcessingException {
-        Map<String, Object> sampleJsonMap = mapper.readValue(sampleJson, Map.class);
-        if (sampleJsonMap.get("isCmoSample") == null
-                || Strings.isBlank(sampleJsonMap.get("isCmoSample").toString())) {
-            return Boolean.FALSE;
-        }
-        return Boolean.valueOf(sampleJsonMap.get("isCmoSample").toString());
-    }
-
-    private Boolean hasRequestId(String sampleJson) throws JsonProcessingException {
-        Map<String, Object> sampleJsonMap = mapper.readValue(sampleJson, Map.class);
-        if ((sampleJsonMap.get("igoRequestId") == null
-                || Strings.isBlank(sampleJsonMap.get("igoRequestId").toString()))) {
-            return Boolean.FALSE;
-        }
-        return Boolean.valueOf(sampleJsonMap.get("igoRequestId").toString());
     }
 }
