@@ -159,7 +159,7 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
                         Boolean hasRequestId = validRequestChecker.hasRequestId(sampleJson);
 
                         if (isCmoSample) {
-                            if (validRequestChecker.isValidCmoSample(sampleMap, isCmoSample, hasRequestId)) {
+                            if (validRequestChecker.isValidCmoSample(sampleMap, hasRequestId)) {
                                 LOG.info("Sanity check passed, publishing cmo sample"
                                         + "update to: " + CMO_SAMPLE_UPDATE_TOPIC);
                                 messagingGateway.publish(
@@ -170,7 +170,6 @@ public class UpdateMessageHandlingServiceImpl implements UpdateMessageHandlingSe
                                 requestStatusLogger.logRequestStatus(sampleJson,
                                         RequestStatusLogger.StatusType.SAMPLE_UPDATE_FAILED_SANITY_CHECK);
                             }
-
                         } else {
                             if (validRequestChecker.isValidNonCmoSample(sampleMap)) {
                                 LOG.info("Sanity check passed, publishing non cmo"
