@@ -271,9 +271,10 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      */
     private Boolean hasValidSpecimenType(Map<String, String> sampleMap) {
         //this can also be sampleClass
-        String specimenType = ObjectUtils.firstNonNull(String.valueOf(sampleMap.get("specimenType")),
-                String.valueOf(sampleMap.get("sampleClass")));
-        if (Strings.isBlank(specimenType)
+        String specimenType = String.valueOf(ObjectUtils.firstNonNull(sampleMap.get("specimenType"),
+               sampleMap.get("sampleClass")));
+        if (specimenType == "null" 
+                || Strings.isBlank(specimenType)
                 || !EnumUtils.isValidEnumIgnoreCase(SpecimenType.class, specimenType)) {
             return hasCmoSampleClass(sampleMap);
         }
@@ -295,8 +296,11 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     private Boolean hasCmoSampleClass(Map<String, String> sampleMap) {
-        String cmoSampleClass = ObjectUtils.firstNonNull(String.valueOf(sampleMap.get("cmoSampleClass")),
-                String.valueOf(sampleMap.get("sampleType")));
+        String cmoSampleClass = String.valueOf(ObjectUtils.firstNonNull(sampleMap.get("cmoSampleClass"),
+                sampleMap.get("sampleType")));
+        if (cmoSampleClass == "null") {
+            return Boolean.FALSE;
+        }
         if (Strings.isBlank(cmoSampleClass)
                 || !EnumUtils.isValidEnumIgnoreCase(CmoSampleClass.class,
                         cmoSampleClass)) {
