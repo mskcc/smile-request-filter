@@ -20,14 +20,14 @@ smile.request_filter_topic=
 igo.new_request_topic=
 igo.cmo_label_generator_topic=
 
-#Incoming message with sample or request data updates:
+# Incoming message with sample or request data updates:
 igo.validate_request_update_topic=
 igo.validate_sample_update_topic=
 
-#Outgoing message with sample that needs new label generated:
+# Outgoing message with sample that needs new label generated:
 igo.cmo_label_update_topic=
 
-#Outgoing messages with validated sample/request containing updates being published to SMILE:
+# Outgoing messages with validated sample/request containing updates being published to SMILE:
 smile.request_update_topic=
 smile.sample_update_topic=
 
