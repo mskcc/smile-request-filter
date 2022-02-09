@@ -52,7 +52,7 @@ public class ValidRequestCheckerTest {
                 .get("mockRequest4JsonNullOrEmptyValues");
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
-        Assert.assertNull(modifiedRequestJson);
+        Assert.assertNotNull(modifiedRequestJson);
     }
 
     /**

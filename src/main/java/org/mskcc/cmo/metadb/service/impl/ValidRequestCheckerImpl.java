@@ -163,8 +163,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (!hasRequestId || !hasInvestigatorSampleId(sampleMap)
                 || !hasBaitSet(sampleMap)
                 || !hasCmoPatientId(sampleMap)
-                || !hasValidSpecimenType(sampleMap)
-                || !hasSampleType(sampleMap)
+                || !(hasValidSpecimenType(sampleMap) && hasSampleType(sampleMap))
                 || !hasNormalizedPatientId(sampleMap)) {
             return Boolean.FALSE;
         }
@@ -207,13 +206,15 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         return Boolean.valueOf(isCMO);
     }
 
-    private String getIsCmo(Map<String, Object> jsonMap) throws JsonProcessingException {        
-        if (jsonMap.get("isCmoRequest") != null) {
+    private String getIsCmo(Map<String, Object> jsonMap) throws JsonProcessingException {
+        if (jsonMap.containsKey("isCmoRequest")) {
             return jsonMap.get("isCmoRequest").toString();
-        } else if (jsonMap.get("additionalProperties") != null) {
-            Map<String, String> additionalPropertiesMap = mapper.readValue(
-                    jsonMap.get("additionalProperties").toString(), Map.class);
-            return additionalPropertiesMap.get("isCmoSample");
+        }
+        if (jsonMap.containsKey("additionalProperties")) {
+            Map<String, String> additionalProperties = mapper.convertValue(jsonMap.get("additionalProperties"), Map.class);
+            if (additionalProperties.containsKey("isCmoSample")) {
+                return additionalProperties.get("isCmoSample");
+            }
         }
         return null;
     }
@@ -228,12 +229,20 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     private String getRequestId(Map<String, Object> jsonMap) throws JsonProcessingException {
-        if (jsonMap.get("requestId") != null) {
+        if (jsonMap.containsKey("requestId")) {
             return jsonMap.get("requestId").toString();
-        } else if (jsonMap.get("additionalProperties") != null) {
-            Map<String, String> additionalPropertiesMap = mapper.readValue(
-                    jsonMap.get("additionalProperties").toString(), Map.class);
-            return additionalPropertiesMap.get("igoRequestId");
+        }
+        if (jsonMap.containsKey("igoRequestId")) {
+            return jsonMap.get("igoRequestId").toString();
+        }
+        if (jsonMap.containsKey("additionalProperties")) {
+            Map<String, String> additionalProperties = mapper.convertValue(jsonMap.get("additionalProperties"), Map.class);
+            if (additionalProperties.containsKey("requestId")) {
+                return additionalProperties.get("requestId");
+            }
+            if (additionalProperties.containsKey("igoRequestId")) {
+                return additionalProperties.get("igoRequestId");
+            }
         }
         return null;
     }
@@ -276,7 +285,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         Object specimenTypeObject = ObjectUtils.firstNonNull(sampleMap.get("specimenType"),
                sampleMap.get("sampleClass"));
         String specimenType = String.valueOf(specimenTypeObject);
-        if (specimenTypeObject == null 
+        if (specimenTypeObject == null
                 || Strings.isBlank(specimenType)
                 || !EnumUtils.isValidEnumIgnoreCase(SpecimenType.class, specimenType)) {
             return hasCmoSampleClass(sampleMap);
@@ -302,7 +311,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         Object cmoSampleClassObject = ObjectUtils.firstNonNull(sampleMap.get("cmoSampleClass"),
                 sampleMap.get("sampleType"));
         String cmoSampleClass = String.valueOf(cmoSampleClassObject);
-        if (cmoSampleClassObject == null 
+        if (cmoSampleClassObject == null
                 || Strings.isBlank(cmoSampleClass)
                 || !EnumUtils.isValidEnumIgnoreCase(CmoSampleClass.class,
                         cmoSampleClass)) {
@@ -337,16 +346,10 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             sampleType = cmoSampleIdFields.get("sampleType");
         }
 
-        if (Strings.isBlank(sampleType)) {
-            return hasNAtoExtract(sampleMap);
-        }
-        if (SampleType.POOLED_LIBRARY.getValue().equalsIgnoreCase(sampleType)) {
-            return hasBaitSet(sampleMap);
-        }
-        if (EnumUtils.isValidEnumIgnoreCase(SampleType.class, sampleType)) {
-            return Boolean.TRUE;
-        }
-        return Boolean.FALSE;
+        return ((Strings.isBlank(sampleType) && hasNAtoExtract(sampleMap))
+                || (SampleType.POOLED_LIBRARY.getValue().equalsIgnoreCase(sampleType)
+                && hasBaitSet(sampleMap))
+                || EnumUtils.isValidEnumIgnoreCase(SampleType.class, sampleType));
     }
 
     private Boolean hasNAtoExtract(Map<String, String> sampleMap)
@@ -366,7 +369,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (sampleMap.containsKey("cmoSampleIdFields")) {
             Map<String, String> cmoSampleIdfields = mapper.convertValue(
                     sampleMap.get("cmoSampleIdFields"), Map.class);
-            return !Strings.isBlank(cmoSampleIdfields.get("normalizedPatientId"));
+            return cmoSampleIdfields.containsKey("normalizedPatientId");
         }
         return Boolean.FALSE;
     }
