@@ -121,7 +121,6 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (StringUtils.isAllBlank(requestJson)) {
             return Boolean.FALSE;
         }
-        ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
         boolean isCmoRequest = isCmo(requestJsonMap);
         boolean hasRequestId = hasRequestId(requestJsonMap);
@@ -211,7 +210,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return jsonMap.get("isCmoRequest").toString();
         }
         if (jsonMap.containsKey("additionalProperties")) {
-            Map<String, String> additionalProperties = mapper.convertValue(jsonMap.get("additionalProperties"), Map.class);
+            Map<String, String> additionalProperties = mapper.convertValue(
+                    jsonMap.get("additionalProperties"), Map.class);
             if (additionalProperties.containsKey("isCmoSample")) {
                 return additionalProperties.get("isCmoSample");
             }
@@ -236,7 +236,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return jsonMap.get("igoRequestId").toString();
         }
         if (jsonMap.containsKey("additionalProperties")) {
-            Map<String, String> additionalProperties = mapper.convertValue(jsonMap.get("additionalProperties"), Map.class);
+            Map<String, String> additionalProperties = mapper.convertValue(
+                    jsonMap.get("additionalProperties"), Map.class);
             if (additionalProperties.containsKey("requestId")) {
                 return additionalProperties.get("requestId");
             }
