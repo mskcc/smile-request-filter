@@ -5,11 +5,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.metadb.service.MessageHandlingService;
+import org.mskcc.cmo.metadb.service.ValidateUpdatesMessageHandlingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.mskcc.cmo.metadb.service.ValidateUpdatesMessageHandlingService;
 
 @SpringBootApplication(scanBasePackages = {"org.mskcc.cmo.messaging",
         "org.mskcc.cmo.common.*", "org.mskcc.cmo.metadb.*"})

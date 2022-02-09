@@ -16,11 +16,11 @@ import org.apache.commons.logging.LogFactory;
 import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.cmo.metadb.service.ValidRequestChecker;
+import org.mskcc.cmo.metadb.service.ValidateUpdatesMessageHandlingService;
 import org.mskcc.cmo.metadb.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.mskcc.cmo.metadb.service.ValidateUpdatesMessageHandlingService;
 
 @Service
 public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMessageHandlingService {
