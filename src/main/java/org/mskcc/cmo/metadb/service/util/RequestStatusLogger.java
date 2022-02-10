@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RequestStatusLogger {
-    @Value("${metadb_req_filter.request_logger_filepath}")
+    @Value("${req_filter.request_logger_filepath}")
     private String requestLoggerFilepath;
 
     @Autowired
@@ -38,13 +38,20 @@ public class RequestStatusLogger {
      *        with the cmoRequestFilter enabled and a non-cmo request is encountered
      * - CMO_REQUEST_FAILED_SANITY_CHECK: request failed cmo-specific sanity check on
      *        required fields for generating cmo labels
+     * - REQUEST_UPDATE_FAILED_SANITY_CHECK: request metadata update failed sanity check on
+     *        required fields
+     * - SAMPLE_UPDATE_FAILED_SANITY_CHECK: sample metadata update failed sanity check on
+     *        required fields. This can be for either cmo samples missing required
+     *        fields to generate cmo label or non-cmo samples
      */
     public enum StatusType {
         REQUEST_WITH_MISSING_SAMPLES,
         CMO_REQUEST_MISSING_REQ_FIELDS,
         REQUEST_PARSING_ERROR,
         CMO_REQUEST_FILTER_SKIPPED_REQUEST,
-        CMO_REQUEST_FAILED_SANITY_CHECK
+        CMO_REQUEST_FAILED_SANITY_CHECK,
+        REQUEST_UPDATE_FAILED_SANITY_CHECK,
+        SAMPLE_UPDATE_FAILED_SANITY_CHECK
     }
 
     /**

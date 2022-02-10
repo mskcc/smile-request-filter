@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,7 +32,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     @Value("${igo.cmo_request_filter:false}")
     private Boolean igoCmoRequestFilter;
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
     private static final Log LOG = LogFactory.getLog(ValidRequestCheckerImpl.class);
 
     /**
@@ -57,13 +58,21 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         }
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
-        boolean isCmoRequest = isCmoRequest(requestJsonMap);
+        boolean isCmoRequest = isCmo(requestJsonMap);
         boolean hasRequestId = hasRequestId(requestJsonMap);
+
+        // if requestId is blank then nothing to do, return null
+        if (!hasRequestId) {
+            LOG.info("CMO request failed sanity checking - missing requestId...");
+            requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.CMO_REQUEST_MISSING_REQ_FIELDS);
+            return null;
+        }
 
         // if cmo filter is enabled then skip request if it is non-cmo
         if (igoCmoRequestFilter && !isCmoRequest) {
             LOG.info("CMO request filter enabled - skipping non-CMO request: "
-                    + requestJsonMap.get("requestId"));
+                    + getRequestId(requestJsonMap));
             return null;
         }
 
@@ -76,7 +85,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         // validate each sample json and add to validSampleList if it passes check
         for (Object sample: sampleList) {
             Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
-            if (isCmoRequest && isValidCmoSample(sampleMap, isCmoRequest, hasRequestId)) {
+            if (isCmoRequest && isValidCmoSample(sampleMap, hasRequestId)) {
                 validSampleList.add(sample);
             } else if (!isCmoRequest && isValidNonCmoSample(sampleMap)) {
                 validSampleList.add(sample);
@@ -102,6 +111,36 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     /**
+     * Evaluates request metadata and returns a boolean based on whether the request data
+     * passes all sanity checks.
+     * @throws IOException
+     */
+    @Override
+    public Boolean isValidRequestMetadataJson(String requestJson)
+            throws IOException {
+        if (StringUtils.isAllBlank(requestJson)) {
+            return Boolean.FALSE;
+        }
+        Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
+        boolean isCmoRequest = isCmo(requestJsonMap);
+        boolean hasRequestId = hasRequestId(requestJsonMap);
+
+        // if requestId is blank then nothing to do, return null
+        if (!hasRequestId) {
+            LOG.info("CMO request update failed sanity checking - missing requestId...");
+            return Boolean.FALSE;
+        }
+
+        // if cmo filter is enabled then skip request if it is non-cmo
+        if (igoCmoRequestFilter && !isCmoRequest) {
+            LOG.info("CMO request filter enabled - skipping non-CMO request: "
+                    + getRequestId(requestJsonMap));
+            return Boolean.FALSE;
+        }
+        return Boolean.TRUE;
+    }
+
+    /**
      * Evaluates sample metadata and returns a boolean based on whether the sample data
      * passes all sanity checks.
      * - Checks if the sample has all the required fields for CMO label generation
@@ -114,17 +153,17 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      *   - normalized patient id
      * @throws JsonProcessingException or JsonMappingException
      */
-    private boolean isValidCmoSample(Map<String, String> sampleMap,
-            boolean isCmoRequest, boolean hasRequestId) throws JsonMappingException, JsonProcessingException {
+    @Override
+    public Boolean isValidCmoSample(Map<String, String> sampleMap,
+            boolean hasRequestId) throws JsonMappingException, JsonProcessingException {
         if (sampleMap == null || sampleMap.isEmpty()) {
             return Boolean.FALSE;
         }
-        if (isCmoRequest && !hasBaitSet(sampleMap)) {
-            return Boolean.FALSE;
-        }
         if (!hasRequestId || !hasInvestigatorSampleId(sampleMap)
-                || !hasCmoPatientId(sampleMap) || !hasValidSpecimenType(sampleMap)
-                || !hasSampleType(sampleMap) || !hasNormalizedPatientId(sampleMap)) {
+                || !hasBaitSet(sampleMap)
+                || !hasCmoPatientId(sampleMap)
+                || !(hasValidSpecimenType(sampleMap) && hasSampleType(sampleMap))
+                || !hasNormalizedPatientId(sampleMap)) {
             return Boolean.FALSE;
         }
         return Boolean.TRUE;
@@ -136,7 +175,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * - If bait set or normalized patient id are  missing then returns false.
      * @throws JsonProcessingException or JsonMappingException
      */
-    private boolean isValidNonCmoSample(Map<String, String> sampleMap)
+    @Override
+    public Boolean isValidNonCmoSample(Map<String, String> sampleMap)
             throws JsonMappingException, JsonProcessingException {
         if (sampleMap == null
                 || sampleMap.isEmpty()
@@ -147,28 +187,87 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         return Boolean.TRUE;
     }
 
-    private boolean isCmoRequest(Map<String, Object> requestJsonMap) {
-        if (requestJsonMap.get("isCmoRequest") == null
-                || Strings.isBlank(requestJsonMap.get("isCmoRequest").toString())) {
+    @Override
+    public Boolean isCmo(String json) throws JsonProcessingException {
+        if (json == null || Strings.isBlank(json)) {
+            return null;
+        }
+        Map<String, Object> jsonMap = mapper.readValue(json, Map.class);
+        return isCmo(jsonMap);
+    }
+
+    private Boolean isCmo(Map<String, Object> jsonMap) throws JsonProcessingException {
+        String isCMO = getIsCmo(jsonMap);
+        if ((isCMO == null)
+                || Strings.isBlank(isCMO)) {
             return Boolean.FALSE;
         }
-        return Boolean.valueOf(requestJsonMap.get("isCmoRequest").toString());
+        return Boolean.valueOf(isCMO);
     }
 
-    private boolean hasRequestId(Map<String, Object> requestJsonMap) {
-        return (requestJsonMap.get("requestId") != null
-                && !Strings.isBlank(requestJsonMap.get("requestId").toString()));
+    private String getIsCmo(Map<String, Object> jsonMap) throws JsonProcessingException {
+        if (jsonMap.containsKey("isCmoRequest")) {
+            return jsonMap.get("isCmoRequest").toString();
+        }
+        if (jsonMap.containsKey("additionalProperties")) {
+            Map<String, String> additionalProperties = mapper.convertValue(
+                    jsonMap.get("additionalProperties"), Map.class);
+            if (additionalProperties.containsKey("isCmoSample")) {
+                return additionalProperties.get("isCmoSample");
+            }
+        }
+        return null;
     }
 
-    private boolean hasBaitSet(Map<String, String> sampleMap) {
+    @Override
+    public String getRequestId(String json) throws JsonProcessingException {
+        if (json == null || Strings.isBlank(json)) {
+            return null;
+        }
+        Map<String, Object> jsonMap = mapper.readValue(json, Map.class);
+        return getRequestId(jsonMap);
+    }
+
+    private String getRequestId(Map<String, Object> jsonMap) throws JsonProcessingException {
+        if (jsonMap.containsKey("requestId")) {
+            return jsonMap.get("requestId").toString();
+        }
+        if (jsonMap.containsKey("igoRequestId")) {
+            return jsonMap.get("igoRequestId").toString();
+        }
+        if (jsonMap.containsKey("additionalProperties")) {
+            Map<String, String> additionalProperties = mapper.convertValue(
+                    jsonMap.get("additionalProperties"), Map.class);
+            if (additionalProperties.containsKey("requestId")) {
+                return additionalProperties.get("requestId");
+            }
+            if (additionalProperties.containsKey("igoRequestId")) {
+                return additionalProperties.get("igoRequestId");
+            }
+        }
+        return null;
+    }
+
+    private Boolean hasRequestId(Map<String, Object> jsonMap) throws JsonProcessingException {
+        String requestId = getRequestId(jsonMap);
+        return (requestId != null && !Strings.isBlank(requestId));
+    }
+
+    @Override
+    public Boolean hasRequestId(String json) throws JsonProcessingException {
+        String requestId = getRequestId(json);
+        return (requestId != null && !Strings.isBlank(requestId));
+    }
+
+    private Boolean hasBaitSet(Map<String, String> sampleMap) {
         return !Strings.isBlank(sampleMap.get("baitSet"));
     }
 
-    private boolean hasInvestigatorSampleId(Map<String, String> sampleMap) {
+    private Boolean hasInvestigatorSampleId(Map<String, String> sampleMap) {
         return !Strings.isBlank(sampleMap.get("investigatorSampleId"));
     }
 
-    private boolean hasCmoPatientId(Map<String, String> sampleMap) {
+    private Boolean hasCmoPatientId(Map<String, String> sampleMap) {
         return !Strings.isBlank(sampleMap.get("cmoPatientId"));
     }
 
@@ -182,13 +281,17 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * @param sampleMap
      * @return
      */
-    private boolean hasValidSpecimenType(Map<String, String> sampleMap) {
-        if (Strings.isBlank(sampleMap.get("specimenType"))
-                || !EnumUtils.isValidEnumIgnoreCase(SpecimenType.class, sampleMap.get("specimenType"))) {
+    private Boolean hasValidSpecimenType(Map<String, String> sampleMap) {
+        //this can also be sampleClass
+        Object specimenTypeObject = ObjectUtils.firstNonNull(sampleMap.get("specimenType"),
+               sampleMap.get("sampleClass"));
+        String specimenType = String.valueOf(specimenTypeObject);
+        if (specimenTypeObject == null
+                || Strings.isBlank(specimenType)
+                || !EnumUtils.isValidEnumIgnoreCase(SpecimenType.class, specimenType)) {
             return hasCmoSampleClass(sampleMap);
         }
         // check if specimen type is cellline, pdx, xenograft, xenograftderivedcellline, or organoid
-        String specimenType = sampleMap.get("specimenType");
         if (SpecimenType.CELLLINE.getValue().equalsIgnoreCase(specimenType)
                 || SpecimenType.PDX.getValue().equalsIgnoreCase(specimenType)
                 || SpecimenType.XENOGRAFT.getValue().equalsIgnoreCase(specimenType)
@@ -205,16 +308,20 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         return Boolean.TRUE;
     }
 
-    private boolean hasCmoSampleClass(Map<String, String> sampleMap) {
-        if (Strings.isBlank(sampleMap.get("cmoSampleClass"))
+    private Boolean hasCmoSampleClass(Map<String, String> sampleMap) {
+        Object cmoSampleClassObject = ObjectUtils.firstNonNull(sampleMap.get("cmoSampleClass"),
+                sampleMap.get("sampleType"));
+        String cmoSampleClass = String.valueOf(cmoSampleClassObject);
+        if (cmoSampleClassObject == null
+                || Strings.isBlank(cmoSampleClass)
                 || !EnumUtils.isValidEnumIgnoreCase(CmoSampleClass.class,
-                        sampleMap.get("cmoSampleClass"))) {
+                        cmoSampleClass)) {
             return Boolean.FALSE;
         }
         return Boolean.TRUE;
     }
 
-    private boolean hasSampleOrigin(Map<String, String> sampleMap) {
+    private Boolean hasSampleOrigin(Map<String, String> sampleMap) {
         if (Strings.isBlank(sampleMap.get("sampleOrigin"))
                 || !EnumUtils.isValidEnumIgnoreCase(SampleOrigin.class, sampleMap.get("sampleOrigin"))) {
             return Boolean.FALSE;
@@ -229,7 +336,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * - return true if sample type is a valid enum
      * @throws JsonProcessingException or JsonMappingException
      */
-    private boolean hasSampleType(Map<String, String> sampleMap)
+    private Boolean hasSampleType(Map<String, String> sampleMap)
             throws JsonMappingException, JsonProcessingException {
         String sampleType = null;
         if (sampleMap.containsKey("cmoSampleIdFields")) {
@@ -240,21 +347,14 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             sampleType = cmoSampleIdFields.get("sampleType");
         }
 
-        if (Strings.isBlank(sampleType)) {
-            return hasNAtoExtract(sampleMap);
-        }
-        if (SampleType.POOLED_LIBRARY.getValue().equalsIgnoreCase(sampleType)) {
-            return hasBaitSet(sampleMap);
-        }
-        if (EnumUtils.isValidEnumIgnoreCase(SampleType.class, sampleType)) {
-            return Boolean.TRUE;
-        }
-        return Boolean.FALSE;
+        return ((Strings.isBlank(sampleType) && hasNAtoExtract(sampleMap))
+                || (SampleType.POOLED_LIBRARY.getValue().equalsIgnoreCase(sampleType)
+                && hasBaitSet(sampleMap))
+                || EnumUtils.isValidEnumIgnoreCase(SampleType.class, sampleType));
     }
 
-    private boolean hasNAtoExtract(Map<String, String> sampleMap)
+    private Boolean hasNAtoExtract(Map<String, String> sampleMap)
             throws JsonMappingException, JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
         if (sampleMap.containsKey("cmoSampleIdFields")) {
             Map<String, String> cmoSampleIdFields = mapper.convertValue(
                     sampleMap.get("cmoSampleIdFields"), Map.class);
@@ -265,13 +365,12 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         return Boolean.FALSE;
     }
 
-    private boolean hasNormalizedPatientId(Map<String, String> sampleMap)
+    private Boolean hasNormalizedPatientId(Map<String, String> sampleMap)
             throws JsonMappingException, JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
         if (sampleMap.containsKey("cmoSampleIdFields")) {
             Map<String, String> cmoSampleIdfields = mapper.convertValue(
                     sampleMap.get("cmoSampleIdFields"), Map.class);
-            return !Strings.isBlank(cmoSampleIdfields.get("normalizedPatientId"));
+            return cmoSampleIdfields.containsKey("normalizedPatientId");
         }
         return Boolean.FALSE;
     }

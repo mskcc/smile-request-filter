@@ -5,6 +5,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.metadb.service.MessageHandlingService;
+import org.mskcc.cmo.metadb.service.ValidateUpdatesMessageHandlingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -21,6 +22,9 @@ public class MetadbRequestFilterApp implements CommandLineRunner {
     @Autowired
     private MessageHandlingService messageHandlingService;
 
+    @Autowired
+    private ValidateUpdatesMessageHandlingService updatesMessageHandlingService;
+
     private Thread shutdownHook;
     final CountDownLatch metadbRequestFilterAppClose = new CountDownLatch(1);
 
@@ -31,6 +35,7 @@ public class MetadbRequestFilterApp implements CommandLineRunner {
             installShutdownHook();
             messagingGateway.connect();
             messageHandlingService.initialize(messagingGateway);
+            updatesMessageHandlingService.initialize(messagingGateway);
             metadbRequestFilterAppClose.await();
         } catch (Exception e) {
             e.printStackTrace();
@@ -47,6 +52,7 @@ public class MetadbRequestFilterApp implements CommandLineRunner {
                     try {
                         messagingGateway.shutdown();
                         messageHandlingService.shutdown();
+                        updatesMessageHandlingService.shutdown();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

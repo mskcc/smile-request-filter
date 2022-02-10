@@ -15,10 +15,21 @@ nats.truststore_path=
 nats.key_password=
 nats.store_password=
 
-# messaging configuration
-metadb.request_filter_topic=
+# new request topics
+smile.request_filter_topic=
 igo.new_request_topic=
 igo.cmo_label_generator_topic=
+
+# Incoming message with sample or request data updates:
+igo.validate_request_update_topic=
+igo.validate_sample_update_topic=
+
+# Outgoing message with sample that needs new label generated:
+igo.cmo_label_update_topic=
+
+# Outgoing messages with validated sample/request containing updates being published to SMILE:
+smile.request_update_topic=
+smile.sample_update_topic=
 
 # threading
 num.new_request_handler_threads=
@@ -27,5 +38,4 @@ num.new_request_handler_threads=
 metadb.publishing_failures_filepath=
 
 # detailed consistency checking logger filepath
-metadb_req_filter.request_logger_filepath=
-
+req_filter.request_logger_filepath=
