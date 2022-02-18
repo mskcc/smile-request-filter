@@ -29,8 +29,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class MessageHandlingServiceImpl implements MessageHandlingService {
 
-    @Value("${smile.request_filter_topic}")
-    private String SMILE_REQUEST_FILTER_TOPIC;
+    @Value("${igo.request_filter_topic}")
+    private String IGO_REQUEST_FILTER_TOPIC;
 
     @Value("${igo.cmo_label_generator_topic}")
     private String CMO_LABEL_GENERATOR_TOPIC;
@@ -163,9 +163,9 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
 
     private void setupRequestFilterHandler(Gateway gateway, MessageHandlingService messageHandlingService)
         throws Exception {
-        gateway.subscribe(SMILE_REQUEST_FILTER_TOPIC, Object.class, new MessageConsumer() {
+        gateway.subscribe(IGO_REQUEST_FILTER_TOPIC, Object.class, new MessageConsumer() {
             public void onMessage(Message msg, Object message) {
-                LOG.info("Received message on topic: " + SMILE_REQUEST_FILTER_TOPIC);
+                LOG.info("Received message on topic: " + IGO_REQUEST_FILTER_TOPIC);
                 try {
                     String requestJson = mapper.readValue(
                             new String(msg.getData(), StandardCharsets.UTF_8),
@@ -173,7 +173,7 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                     messageHandlingService.requestFilterHandler(requestJson);
                 } catch (Exception e) {
                     LOG.error("Exception during processing of request on topic: "
-                            + SMILE_REQUEST_FILTER_TOPIC, e);
+                            + IGO_REQUEST_FILTER_TOPIC, e);
                     try {
                         requestStatusLogger.logRequestStatus(message.toString(),
                                 RequestStatusLogger.StatusType.REQUEST_PARSING_ERROR);
