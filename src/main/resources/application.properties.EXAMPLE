@@ -15,19 +15,21 @@ nats.truststore_path=
 nats.key_password=
 nats.store_password=
 
-# new request topics
-smile.request_filter_topic=
-igo.new_request_topic=
-igo.cmo_label_generator_topic=
+# pub-sub topics
 
-# Incoming message with sample or request data updates:
+# incoming request topics
+igo.request_filter_topic=
+igo.new_request_topic=
+
+# label generator pub topics
+igo.cmo_label_generator_topic=
+igo.cmo_label_update_topic=
+
+# incoming sample and request sub topics
 igo.validate_request_update_topic=
 igo.validate_sample_update_topic=
 
-# Outgoing message with sample that needs new label generated:
-igo.cmo_label_update_topic=
-
-# Outgoing messages with validated sample/request containing updates being published to SMILE:
+# smile server pub topics
 smile.request_update_topic=
 smile.sample_update_topic=
 
