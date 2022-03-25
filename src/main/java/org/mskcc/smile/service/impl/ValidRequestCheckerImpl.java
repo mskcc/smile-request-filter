@@ -1,4 +1,4 @@
-package org.mskcc.cmo.metadb.service.impl;
+package org.mskcc.smile.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -13,12 +13,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.util.Strings;
-import org.mskcc.cmo.common.enums.CmoSampleClass;
-import org.mskcc.cmo.common.enums.SampleOrigin;
-import org.mskcc.cmo.common.enums.SampleType;
-import org.mskcc.cmo.common.enums.SpecimenType;
-import org.mskcc.cmo.metadb.service.ValidRequestChecker;
-import org.mskcc.cmo.metadb.service.util.RequestStatusLogger;
+import org.mskcc.smile.commons.enums.CmoSampleClass;
+import org.mskcc.smile.commons.enums.SampleOrigin;
+import org.mskcc.smile.commons.enums.SampleType;
+import org.mskcc.smile.commons.enums.SpecimenType;
+import org.mskcc.smile.service.ValidRequestChecker;
+import org.mskcc.smile.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

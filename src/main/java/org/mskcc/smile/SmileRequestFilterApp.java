@@ -1,20 +1,20 @@
-package org.mskcc.cmo.metadb;
+package org.mskcc.smile;
 
 import java.util.concurrent.CountDownLatch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mskcc.cmo.messaging.Gateway;
-import org.mskcc.cmo.metadb.service.MessageHandlingService;
-import org.mskcc.cmo.metadb.service.ValidateUpdatesMessageHandlingService;
+import org.mskcc.smile.service.MessageHandlingService;
+import org.mskcc.smile.service.ValidateUpdatesMessageHandlingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication(scanBasePackages = {"org.mskcc.cmo.messaging",
-        "org.mskcc.cmo.common.*", "org.mskcc.cmo.metadb.*"})
-public class MetadbRequestFilterApp implements CommandLineRunner {
-    private static final Log LOG = LogFactory.getLog(MetadbRequestFilterApp.class);
+        "org.mskcc.smile.commons.*", "org.mskcc.smile.*"})
+public class SmileRequestFilterApp implements CommandLineRunner {
+    private static final Log LOG = LogFactory.getLog(SmileRequestFilterApp.class);
 
     @Autowired
     private Gateway messagingGateway;
@@ -26,17 +26,17 @@ public class MetadbRequestFilterApp implements CommandLineRunner {
     private ValidateUpdatesMessageHandlingService updatesMessageHandlingService;
 
     private Thread shutdownHook;
-    final CountDownLatch metadbRequestFilterAppClose = new CountDownLatch(1);
+    final CountDownLatch smileRequestFilterAppClose = new CountDownLatch(1);
 
     @Override
     public void run(String... args) throws Exception {
-        LOG.info("Starting up MetaDB Request Filter application...");
+        LOG.info("Starting up SMILE Request Filter application...");
         try {
             installShutdownHook();
             messagingGateway.connect();
             messageHandlingService.initialize(messagingGateway);
             updatesMessageHandlingService.initialize(messagingGateway);
-            metadbRequestFilterAppClose.await();
+            smileRequestFilterAppClose.await();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -56,14 +56,14 @@ public class MetadbRequestFilterApp implements CommandLineRunner {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    metadbRequestFilterAppClose.countDown();
+                    smileRequestFilterAppClose.countDown();
                 }
             };
         Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(MetadbRequestFilterApp.class, args);
+        SpringApplication.run(SmileRequestFilterApp.class, args);
     }
 
 }
