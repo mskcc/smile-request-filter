@@ -1,4 +1,4 @@
-package org.mskcc.cmo.metadb.service.impl;
+package org.mskcc.smile.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
@@ -15,9 +15,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
-import org.mskcc.cmo.metadb.service.MessageHandlingService;
-import org.mskcc.cmo.metadb.service.ValidRequestChecker;
-import org.mskcc.cmo.metadb.service.util.RequestStatusLogger;
+import org.mskcc.smile.service.MessageHandlingService;
+import org.mskcc.smile.service.ValidRequestChecker;
+import org.mskcc.smile.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

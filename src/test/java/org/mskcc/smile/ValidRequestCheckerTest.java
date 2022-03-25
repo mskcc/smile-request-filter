@@ -1,12 +1,12 @@
-package org.mskcc.cmo.metadb;
+package org.mskcc.smile;
 
 import java.util.Map;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mskcc.cmo.metadb.config.MockDataConfig;
-import org.mskcc.cmo.metadb.model.MockJsonTestData;
-import org.mskcc.cmo.metadb.service.ValidRequestChecker;
+import org.mskcc.smile.config.MockDataConfig;
+import org.mskcc.smile.model.MockJsonTestData;
+import org.mskcc.smile.service.ValidRequestChecker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
@@ -14,7 +14,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @ContextConfiguration(classes = MockDataConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-@ComponentScan("org.mskcc.cmo.metadb.service")
+@ComponentScan("org.mskcc.smile.service")
 public class ValidRequestCheckerTest {
 
     @Autowired
@@ -122,7 +122,7 @@ public class ValidRequestCheckerTest {
     @Test
     public void testGetRequestIdMissingRequestId() throws Exception {
         String requestJson =
-                "{\"metaDbRequestId\": \"metaDbRequestIdValue\",  \"igoProjectId\": \"MOCKREQUEST1\"}";
+                "{\"smileRequestId\": \"smileRequestIdValue\",  \"igoProjectId\": \"MOCKREQUEST1\"}";
         String requestId = validRequestChecker.getRequestId(requestJson);
         Assert.assertNull(requestId);
     }

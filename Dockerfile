@@ -5,5 +5,5 @@ WORKDIR /request-filter
 RUN mvn clean install
 
 FROM openjdk:8-slim
-COPY --from=0 /request-filter/target/cmo_metadb_request_filter.jar /request-filter/cmo_metadb_request_filter.jar
+COPY --from=0 /request-filter/target/smile_request_filter.jar /request-filter/smile_request_filter.jar
 ENTRYPOINT ["java"]

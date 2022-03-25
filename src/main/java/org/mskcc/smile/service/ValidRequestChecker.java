@@ -1,4 +1,4 @@
-package org.mskcc.cmo.metadb.service;
+package org.mskcc.smile.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;

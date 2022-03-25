@@ -37,7 +37,7 @@ smile.sample_update_topic=
 num.new_request_handler_threads=
 
 # publishing failures filepath
-metadb.publishing_failures_filepath=
+smile.publishing_failures_filepath=
 
 # detailed consistency checking logger filepath
 req_filter.request_logger_filepath=

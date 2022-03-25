@@ -1,6 +1,6 @@
-# CMO Sample Validator & MetaDB Request Filter
+# CMO Sample Validator & SMILE Request Filter
 
-The CMO sample validator and MetaDB request filter is a microservice for the MetaDB which subscribes to messages published by the LIMSRest service when a request is marked for delivery.
+The CMO sample validator and SMILE request filter is a microservice for the SMILE which subscribes to messages published by the LIMSRest service when a request is marked for delivery.
 
 Messages received will undergo some validation steps to ensure that the request JSON delivered is complete. If a request is a CMO request (based on the JSON field `cmoRequest`) then it will undergo additional validation to ensure that all fields required for generating a CMO sample label are provided and contain valid values.
 
@@ -36,7 +36,7 @@ mvn clean install
 Run with
 
 ```
-java -jar target/cmo_metadb_request_filter.jar
+java -jar target/smile_request_filter.jar
 ```
 
 ### With Docker
@@ -61,7 +61,7 @@ If the Docker image is built with the properties baked in then simply run with:
 
 ```
 docker run --name request-filter <repo>/<tag>:<version> \
-	-jar /request-filter/cmo_metadb_request_filter.jar
+	-jar /request-filter/smile_request_filter.jar
 ```
 
 Otherwise use a bind mount to make the local files available to the Docker image and add  `--spring.config.location` to the java arg
@@ -69,6 +69,6 @@ Otherwise use a bind mount to make the local files available to the Docker image
 ```
 docker run --mount type=bind,source=<local path to properties files>,target=/request-filter/src/main/resources \
 	--name request-filter <repo>/<tag>:<version> \
-	-jar /request-filter/cmo_metadb_request_filter.jar \
+	-jar /request-filter/smile_request_filter.jar \
 	--spring.config.location=/request-filter/src/main/resources/application.properties
 ```
