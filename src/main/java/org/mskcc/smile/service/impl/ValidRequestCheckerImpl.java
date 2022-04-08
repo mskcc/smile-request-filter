@@ -162,7 +162,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (!hasRequestId || !hasInvestigatorSampleId(sampleMap)
                 || !hasBaitSet(sampleMap)
                 || !hasCmoPatientId(sampleMap)
-                || !(hasValidSpecimenType(sampleMap) && hasSampleType(sampleMap))
+                || !(hasValidSpecimenType(sampleMap) || hasSampleType(sampleMap))
                 || !hasNormalizedPatientId(sampleMap)) {
             return Boolean.FALSE;
         }
