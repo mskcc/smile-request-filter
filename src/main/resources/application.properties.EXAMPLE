@@ -33,6 +33,11 @@ igo.validate_sample_update_topic=
 smile.request_update_topic=
 smile.sample_update_topic=
 
+# promoted request topics
+igo.validate_promoted_request_topic=
+igo.cmo_promoted_label_topic=
+igo.promoted_request_topic=
+
 # threading
 num.new_request_handler_threads=
 

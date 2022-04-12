@@ -15,7 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
-import org.mskcc.smile.service.MessageHandlingService;
+import org.mskcc.smile.service.RequestFilterMessageHandlingService;
 import org.mskcc.smile.service.ValidRequestChecker;
 import org.mskcc.smile.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
  * @author ochoaa
  */
 @Service
-public class MessageHandlingServiceImpl implements MessageHandlingService {
+public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageHandlingService {
 
     @Value("${igo.request_filter_topic}")
     private String IGO_REQUEST_FILTER_TOPIC;
@@ -56,7 +56,7 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
     private static CountDownLatch requestFilterHandlerShutdownLatch;
     private static Gateway messagingGateway;
 
-    private static final Log LOG = LogFactory.getLog(MessageHandlingServiceImpl.class);
+    private static final Log LOG = LogFactory.getLog(RequestFilterMsgHandlingServiceIml.class);
 
     private class RequestFilterHandler implements Runnable {
 
@@ -161,7 +161,8 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
         requestFilterPhaser.arriveAndAwaitAdvance();
     }
 
-    private void setupRequestFilterHandler(Gateway gateway, MessageHandlingService messageHandlingService)
+    private void setupRequestFilterHandler(Gateway gateway,
+            RequestFilterMessageHandlingService messageHandlingService)
         throws Exception {
         gateway.subscribe(IGO_REQUEST_FILTER_TOPIC, Object.class, new MessageConsumer() {
             public void onMessage(Message msg, Object message) {

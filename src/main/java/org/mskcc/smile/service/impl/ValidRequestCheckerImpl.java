@@ -52,55 +52,27 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      */
     @Override
     public String getFilteredValidRequestJson(String requestJson) throws IOException {
-        // if json is blank then nothing to do, return null
-        if (StringUtils.isAllBlank(requestJson)) {
+        // first check if request-level metadata is valid
+        if (!hasValidRequestLevelMetadata(requestJson)) {
             return null;
         }
-        ObjectMapper mapper = new ObjectMapper();
+
+        // verify that request has 'samples' json field
+        if (!requestHasSamples(requestJson)) {
+            return null;
+        }
+
+        // extract valid samples from request json
         Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
-        boolean isCmoRequest = isCmo(requestJsonMap);
-        boolean hasRequestId = hasRequestId(requestJsonMap);
-
-        // if requestId is blank then nothing to do, return null
-        if (!hasRequestId) {
-            LOG.warn("CMO request failed sanity checking - missing requestId...");
-            requestStatusLogger.logRequestStatus(requestJson,
-                    RequestStatusLogger.StatusType.CMO_REQUEST_WITH_SAMPLES_MISSING_CMO_LABEL_FIELDS);
-            return null;
-        }
-
-        // if cmo filter is enabled then skip request if it is non-cmo
-        if (igoCmoRequestFilter && !isCmoRequest) {
-            LOG.warn("CMO request filter enabled - skipping non-CMO request: "
-                    + getRequestId(requestJsonMap));
-            requestStatusLogger.logRequestStatus(requestJson,
-                    RequestStatusLogger.StatusType.CMO_REQUEST_FILTER_SKIPPED_REQUEST);
-            return null;
-        }
-
-        if (!requestJsonMap.containsKey("samples")) {
-            LOG.warn("Skipping request that is missing 'samples' in JSON: " + getRequestId(requestJsonMap));
-            requestStatusLogger.logRequestStatus(requestJson,
-                    RequestStatusLogger.StatusType.REQUEST_WITH_MISSING_SAMPLES);
-            return null;
-        }
-
-        // extract sample list from request json
         Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
                 Object[].class);
-        if (sampleList.length == 0) {
-            LOG.warn("Skipping request with 'samples' size zero: " + getRequestId(requestJsonMap));
-            requestStatusLogger.logRequestStatus(requestJson,
-                    RequestStatusLogger.StatusType.REQUEST_WITH_MISSING_SAMPLES);
-            return null;
-        }
-        List<Object> validSampleList = new ArrayList<Object>();
-        int numOfSamples = sampleList.length; // orig num of samples in request
 
         // validate each sample json and add to validSampleList if it passes check
+        Boolean isCmoRequest = isCmo(requestJsonMap);
+        List<Object> validSampleList = new ArrayList<Object>();
         for (Object sample: sampleList) {
             Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
-            if (isCmoRequest && isValidCmoSample(sampleMap, hasRequestId)) {
+            if (isCmoRequest && isValidCmoSample(sampleMap)) {
                 validSampleList.add(sample);
             } else if (!isCmoRequest && isValidNonCmoSample(sampleMap)) {
                 validSampleList.add(sample);
@@ -111,7 +83,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         // if valid samples total does not match the original samples total then
         // log request with request status logger but allow request to be published
         if (validSampleList.size() > 0) {
-            if (validSampleList.size() < numOfSamples) {
+            if (validSampleList.size() < sampleList.length) {
                 requestJsonMap.replace("samples", validSampleList.toArray(new Object[0]));
                 LOG.info("CMO request passed sanity checking with some samples missing "
                         + "required CMO label fields");
@@ -126,13 +98,44 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         return null;
     }
 
+    @Override
+    public Boolean isValidPromotedRequest(String requestJson) throws JsonMappingException,
+            JsonProcessingException, IOException {
+        // first check if request-level metadata is valid
+        if (!hasValidRequestLevelMetadata(requestJson)) {
+            return Boolean.FALSE;
+        }
+
+        // verify that request has 'samples' json field
+        if (!requestHasSamples(requestJson)) {
+            return Boolean.FALSE;
+        }
+
+        Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        for (Object sample: sampleList) {
+            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
+            // sample should have at least an igoId/primaryId and at least a cmoPatientId/normalizedPatientId
+            if (!hasIgoId(sampleMap) || !(hasCmoPatientId(sampleMap) || hasNormalizedPatientId(sampleMap))) {
+                LOG.warn("Sample is missing one or a combination of the following: igoId or primaryId, "
+                        + "cmoPatientId or cmoSampleIdFields --> normalizedPatientId - this information "
+                        + "must be added for promoted requests & samples");
+                requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.PROMOTED_SAMPLES_MISSING_IDS);
+                return Boolean.FALSE;
+            }
+        }
+        return Boolean.TRUE;
+    }
+
     /**
      * Evaluates request metadata and returns a boolean based on whether the request data
      * passes all sanity checks.
      * @throws IOException
      */
     @Override
-    public Boolean isValidRequestMetadataJson(String requestJson)
+    public Boolean hasValidRequestLevelMetadata(String requestJson)
             throws IOException {
         if (StringUtils.isAllBlank(requestJson)) {
             return Boolean.FALSE;
@@ -143,16 +146,21 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
         // if requestId is blank then nothing to do, return null
         if (!hasRequestId) {
-            LOG.info("CMO request update failed sanity checking - missing requestId...");
+            LOG.warn("CMO request failed sanity checking - missing requestId...");
+            requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.CMO_REQUEST_WITH_SAMPLES_MISSING_CMO_LABEL_FIELDS);
             return Boolean.FALSE;
         }
 
         // if cmo filter is enabled then skip request if it is non-cmo
         if (igoCmoRequestFilter && !isCmoRequest) {
-            LOG.info("CMO request filter enabled - skipping non-CMO request: "
+            LOG.warn("CMO request filter enabled - skipping non-CMO request: "
                     + getRequestId(requestJsonMap));
+            requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.CMO_REQUEST_FILTER_SKIPPED_REQUEST);
             return Boolean.FALSE;
         }
+
         return Boolean.TRUE;
     }
 
@@ -170,16 +178,17 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * @throws JsonProcessingException or JsonMappingException
      */
     @Override
-    public Boolean isValidCmoSample(Map<String, String> sampleMap,
-            boolean hasRequestId) throws JsonMappingException, JsonProcessingException {
+    public Boolean isValidCmoSample(Map<String, String> sampleMap)
+            throws JsonMappingException, JsonProcessingException {
         if (sampleMap == null || sampleMap.isEmpty()) {
             return Boolean.FALSE;
         }
-        if (!hasRequestId || !hasInvestigatorSampleId(sampleMap)
+        if (!hasInvestigatorSampleId(sampleMap)
+                || !hasIgoId(sampleMap)
                 || !hasBaitSet(sampleMap)
                 || !hasCmoPatientId(sampleMap)
                 || !(hasValidSpecimenType(sampleMap) || hasSampleType(sampleMap))
-                || !hasNormalizedPatientId(sampleMap)) {
+                || !hasNormalizedPatientId(sampleMap) || !hasFastQs(sampleMap)) {
             return Boolean.FALSE;
         }
         return Boolean.TRUE;
@@ -275,6 +284,15 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         return (requestId != null && !Strings.isBlank(requestId));
     }
 
+    private Boolean hasIgoId(Map<String, String> sampleMap) {
+        Object igoIdOrPrimaryId = ObjectUtils.firstNonNull(sampleMap.get("igoId"),
+               sampleMap.get("primaryId"));
+        if (igoIdOrPrimaryId == null) {
+            return Boolean.FALSE;
+        }
+        return !Strings.isBlank(String.valueOf(igoIdOrPrimaryId));
+    }
+
     private Boolean hasBaitSet(Map<String, String> sampleMap) {
         return !Strings.isBlank(sampleMap.get("baitSet"));
     }
@@ -285,6 +303,38 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
     private Boolean hasCmoPatientId(Map<String, String> sampleMap) {
         return !Strings.isBlank(sampleMap.get("cmoPatientId"));
+    }
+
+    private Boolean hasFastQs(Map<String, String> sampleMap) {
+        // libraries -> runs -> fastqs [string list]
+        if (!sampleMap.containsKey("libraries")) {
+            return Boolean.FALSE;
+        }
+        List<Object> libraries = mapper.convertValue(sampleMap.get("libraries"), List.class);
+        if (libraries.isEmpty()) {
+            return Boolean.FALSE;
+        }
+        for (Object lib : libraries) {
+            Map<String, Object> libMap = mapper.convertValue(lib, Map.class);
+            if (!libMap.containsKey("runs")) {
+                return Boolean.FALSE;
+            }
+            List<Object> runs = mapper.convertValue(libMap.get("runs"), List.class);
+            if (runs.isEmpty()) {
+                return Boolean.FALSE;
+            }
+            for (Object run : runs) {
+                Map<String, Object> runMap = mapper.convertValue(run, Map.class);
+                if (runMap.containsKey("fastqs")) {
+                    String[] fastqs = mapper.convertValue(runMap.get("fastqs"),
+                            String[].class);
+                    if (fastqs.length > 0) {
+                        return  Boolean.TRUE;
+                    }
+                }
+            }
+        }
+        return Boolean.FALSE;
     }
 
     /**
@@ -389,5 +439,26 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return cmoSampleIdfields.containsKey("normalizedPatientId");
         }
         return Boolean.FALSE;
+    }
+
+    private Boolean requestHasSamples(String requestJson) throws JsonProcessingException, IOException {
+        Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
+        if (!requestJsonMap.containsKey("samples")) {
+            LOG.warn("Skipping request that is missing 'samples' in JSON");
+            requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.REQUEST_WITH_MISSING_SAMPLES);
+            return Boolean.FALSE;
+        }
+
+        // extract sample list from request json and check size is non-zero
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        if (sampleList.length == 0) {
+            LOG.warn("Skipping request without any sample data in 'samples' JSON field");
+            requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.REQUEST_WITH_MISSING_SAMPLES);
+            return Boolean.FALSE;
+        }
+        return Boolean.TRUE;
     }
 }
