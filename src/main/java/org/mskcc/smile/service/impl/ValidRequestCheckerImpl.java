@@ -63,22 +63,37 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
         // if requestId is blank then nothing to do, return null
         if (!hasRequestId) {
-            LOG.info("CMO request failed sanity checking - missing requestId...");
+            LOG.warn("CMO request failed sanity checking - missing requestId...");
             requestStatusLogger.logRequestStatus(requestJson,
-                    RequestStatusLogger.StatusType.CMO_REQUEST_MISSING_REQ_FIELDS);
+                    RequestStatusLogger.StatusType.CMO_REQUEST_WITH_SAMPLES_MISSING_CMO_LABEL_FIELDS);
             return null;
         }
 
         // if cmo filter is enabled then skip request if it is non-cmo
         if (igoCmoRequestFilter && !isCmoRequest) {
-            LOG.info("CMO request filter enabled - skipping non-CMO request: "
+            LOG.warn("CMO request filter enabled - skipping non-CMO request: "
                     + getRequestId(requestJsonMap));
+            requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.CMO_REQUEST_FILTER_SKIPPED_REQUEST);
+            return null;
+        }
+
+        if (!requestJsonMap.containsKey("samples")) {
+            LOG.warn("Skipping request that is missing 'samples' in JSON: " + getRequestId(requestJsonMap));
+            requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.REQUEST_WITH_MISSING_SAMPLES);
             return null;
         }
 
         // extract sample list from request json
         Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
                 Object[].class);
+        if (sampleList.length == 0) {
+            LOG.warn("Skipping request with 'samples' size zero: " + getRequestId(requestJsonMap));
+            requestStatusLogger.logRequestStatus(requestJson,
+                    RequestStatusLogger.StatusType.REQUEST_WITH_MISSING_SAMPLES);
+            return null;
+        }
         List<Object> validSampleList = new ArrayList<Object>();
         int numOfSamples = sampleList.length; // orig num of samples in request
 
@@ -98,9 +113,10 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (validSampleList.size() > 0) {
             if (validSampleList.size() < numOfSamples) {
                 requestJsonMap.replace("samples", validSampleList.toArray(new Object[0]));
-                LOG.info("CMO request passed sanity checking - missing samples...");
+                LOG.info("CMO request passed sanity checking with some samples missing "
+                        + "required CMO label fields");
                 requestStatusLogger.logRequestStatus(requestJson,
-                        RequestStatusLogger.StatusType.CMO_REQUEST_MISSING_REQ_FIELDS);
+                        RequestStatusLogger.StatusType.CMO_REQUEST_WITH_SAMPLES_MISSING_CMO_LABEL_FIELDS);
             }
             return mapper.writeValueAsString(requestJsonMap);
         }
