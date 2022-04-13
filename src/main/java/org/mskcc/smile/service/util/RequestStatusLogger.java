@@ -31,7 +31,7 @@ public class RequestStatusLogger {
     /**
      * Request StatusType descriptions:
      * - REQUEST_WITH_MISSING_SAMPLES: a request that came in with no sample metadata
-     * - CMO_REQUEST_MISSING_REQ_FIELDS: a CMO request with sample metadata
+     * - CMO_REQUEST_WITH_SAMPLES_MISSING_CMO_LABEL_FIELDS: a CMO request with sample metadata
      *        that is missing required fields (cmoPatientId, baitSet)
      * - REQUEST_PARSING_ERROR: json parsing exception thrown
      * - CMO_REQUEST_FILTER_SKIPPED_REQUEST: applies if smile server is running
@@ -46,7 +46,7 @@ public class RequestStatusLogger {
      */
     public enum StatusType {
         REQUEST_WITH_MISSING_SAMPLES,
-        CMO_REQUEST_MISSING_REQ_FIELDS,
+        CMO_REQUEST_WITH_SAMPLES_MISSING_CMO_LABEL_FIELDS,
         REQUEST_PARSING_ERROR,
         CMO_REQUEST_FILTER_SKIPPED_REQUEST,
         CMO_REQUEST_FAILED_SANITY_CHECK,
