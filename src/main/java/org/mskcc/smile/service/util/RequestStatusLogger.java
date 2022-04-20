@@ -43,6 +43,10 @@ public class RequestStatusLogger {
      * - SAMPLE_UPDATE_FAILED_SANITY_CHECK: sample metadata update failed sanity check on
      *        required fields. This can be for either cmo samples missing required
      *        fields to generate cmo label or non-cmo samples
+     * - PROMOTED_REQUEST_FAILED_SANITY_CHECK: a promoted request which has failed sanity
+     *        check on the minimally required fields
+     * - PROMOTED_SAMPLES_MISSING_IDS: at least one sample in the promoted request is missing
+     *        key identifier information (igoId and/or primaryId)
      */
     public enum StatusType {
         REQUEST_WITH_MISSING_SAMPLES,
@@ -51,7 +55,9 @@ public class RequestStatusLogger {
         CMO_REQUEST_FILTER_SKIPPED_REQUEST,
         CMO_REQUEST_FAILED_SANITY_CHECK,
         REQUEST_UPDATE_FAILED_SANITY_CHECK,
-        SAMPLE_UPDATE_FAILED_SANITY_CHECK
+        SAMPLE_UPDATE_FAILED_SANITY_CHECK,
+        PROMOTED_REQUEST_FAILED_SANITY_CHECK,
+        PROMOTED_SAMPLES_MISSING_IDS
     }
 
     /**
