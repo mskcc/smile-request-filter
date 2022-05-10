@@ -80,7 +80,6 @@ public class ValidRequestCheckerTest {
         Assert.assertNull(modifiedRequestJson);
     }
 
-
     /**
      * Test for handling request with no valid samples
      */
