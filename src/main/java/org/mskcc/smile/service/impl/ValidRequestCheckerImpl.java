@@ -214,7 +214,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
     @Override
     public Boolean isCmo(String json) throws JsonProcessingException {
-        if (json == null || Strings.isBlank(json)) {
+        if (isBlank(json)) {
             return null;
         }
         Map<String, Object> jsonMap = mapper.readValue(json, Map.class);
@@ -223,8 +223,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
     private Boolean isCmo(Map<String, Object> jsonMap) throws JsonProcessingException {
         String isCMO = getIsCmo(jsonMap);
-        if ((isCMO == null)
-                || Strings.isBlank(isCMO)) {
+        if (isBlank(isCMO)) {
             return Boolean.FALSE;
         }
         return Boolean.valueOf(isCMO);
@@ -246,7 +245,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
     @Override
     public String getRequestId(String json) throws JsonProcessingException {
-        if (json == null || Strings.isBlank(json)) {
+        if (isBlank(json)) {
             return null;
         }
         Map<String, Object> jsonMap = mapper.readValue(json, Map.class);
@@ -275,13 +274,13 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
     private Boolean hasRequestId(Map<String, Object> jsonMap) throws JsonProcessingException {
         String requestId = getRequestId(jsonMap);
-        return (requestId != null && !Strings.isBlank(requestId));
+        return (!isBlank(requestId));
     }
 
     @Override
     public Boolean hasRequestId(String json) throws JsonProcessingException {
         String requestId = getRequestId(json);
-        return (requestId != null && !Strings.isBlank(requestId));
+        return (!isBlank(requestId));
     }
 
     private Boolean hasIgoId(Map<String, String> sampleMap) {
@@ -290,19 +289,19 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (igoIdOrPrimaryId == null) {
             return Boolean.FALSE;
         }
-        return !Strings.isBlank(String.valueOf(igoIdOrPrimaryId));
+        return !isBlank(String.valueOf(igoIdOrPrimaryId));
     }
 
     private Boolean hasBaitSet(Map<String, String> sampleMap) {
-        return !Strings.isBlank(sampleMap.get("baitSet"));
+        return !isBlank(sampleMap.get("baitSet"));
     }
 
     private Boolean hasInvestigatorSampleId(Map<String, String> sampleMap) {
-        return !Strings.isBlank(sampleMap.get("investigatorSampleId"));
+        return !isBlank(sampleMap.get("investigatorSampleId"));
     }
 
     private Boolean hasCmoPatientId(Map<String, String> sampleMap) {
-        return !Strings.isBlank(sampleMap.get("cmoPatientId"));
+        return !isBlank(sampleMap.get("cmoPatientId"));
     }
 
     private Boolean hasFastQs(Map<String, String> sampleMap) {
@@ -352,8 +351,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         Object specimenTypeObject = ObjectUtils.firstNonNull(sampleMap.get("specimenType"),
                sampleMap.get("sampleClass"));
         String specimenType = String.valueOf(specimenTypeObject);
-        if (specimenTypeObject == null
-                || Strings.isBlank(specimenType)
+        if (isBlank(specimenType)
                 || !EnumUtils.isValidEnumIgnoreCase(SpecimenType.class, specimenType)) {
             return hasCmoSampleClass(sampleMap);
         }
@@ -378,8 +376,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         Object cmoSampleClassObject = ObjectUtils.firstNonNull(sampleMap.get("cmoSampleClass"),
                 sampleMap.get("sampleType"));
         String cmoSampleClass = String.valueOf(cmoSampleClassObject);
-        if (cmoSampleClassObject == null
-                || Strings.isBlank(cmoSampleClass)
+        if (isBlank(cmoSampleClass)
                 || !EnumUtils.isValidEnumIgnoreCase(CmoSampleClass.class,
                         cmoSampleClass)) {
             return Boolean.FALSE;
@@ -388,7 +385,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     private Boolean hasSampleOrigin(Map<String, String> sampleMap) {
-        if (Strings.isBlank(sampleMap.get("sampleOrigin"))
+        if (isBlank(sampleMap.get("sampleOrigin"))
                 || !EnumUtils.isValidEnumIgnoreCase(SampleOrigin.class, sampleMap.get("sampleOrigin"))) {
             return Boolean.FALSE;
         }
@@ -413,7 +410,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             sampleType = cmoSampleIdFields.get("sampleType");
         }
 
-        return ((Strings.isBlank(sampleType) && hasNAtoExtract(sampleMap))
+        return ((isBlank(sampleType) && hasNAtoExtract(sampleMap))
                 || (SampleType.POOLED_LIBRARY.getValue().equalsIgnoreCase(sampleType)
                 && hasBaitSet(sampleMap))
                 || EnumUtils.isValidEnumIgnoreCase(SampleType.class, sampleType));
@@ -460,5 +457,9 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return Boolean.FALSE;
         }
         return Boolean.TRUE;
+    }
+    
+    private Boolean isBlank(String value) {
+        return (Strings.isBlank(value) || value.equals("null"));
     }
 }

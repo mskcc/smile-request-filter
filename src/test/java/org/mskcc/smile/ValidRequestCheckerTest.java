@@ -67,7 +67,18 @@ public class ValidRequestCheckerTest {
                 .getFilteredValidRequestJson(requestJson.getJsonString());
         Assert.assertNull(modifiedRequestJson);
     }
-
+    
+    /**
+     * Test for handling null or empty baitSet in sampleManifest inrequestJson
+     */
+    @Test
+    public void testNullBaitSetInSampleManifestInRequestJson() throws Exception {
+        MockJsonTestData requestJson = mockedRequestJsonDataMap
+                .get("mockRequest1eNullStringBaitSet");
+        String modifiedRequestJson = validRequestChecker
+                .getFilteredValidRequestJson(requestJson.getJsonString());
+        Assert.assertNull(modifiedRequestJson);
+    }
 
     /**
      * Test for handling request with no valid samples
