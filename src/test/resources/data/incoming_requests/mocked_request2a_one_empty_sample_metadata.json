@@ -14,32 +14,14 @@
   "qcAccessEmails": "",
   "isCmoRequest": true,
   "bicAnalysis": false,
-  "pooledNormals": [
-    "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT/FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT_S118_R1_001.fastq.gz",
-    "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT/FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT_S118_R2_001.fastq.gz",
-    "/FASTQ/Project_POOLEDNORMALS/Sample_FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG/FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG_S22_R1_001.fastq.gz",
-    "/FASTQ/Project_POOLEDNORMALS/Sample_FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG/FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG_S22_R2_001.fastq.gz"
-  ],
-  "projectId": "22022",
   "samples": [
     {
-      "igoId": "",
       "cmoSampleName": "",
       "sampleName": "",
       "cmoSampleClass": "",
-      "cmoPatientId": "",
-      "investigatorSampleId": "",
-      "tumorOrNormal": "",
-      "tissueLocation": "",
       "oncoTreeCode": "",
-      "specimenType": "",
-      "sampleOrigin": "",
-      "preservation": "",
       "collectionYear": "",
-      "sex": "",
-      "species": "",
       "tubeId": "",
-      "baitSet": "",
       "qcReports": [
         {
           "qcReportType": "",
@@ -47,11 +29,6 @@
           "investigatorDecision": ""
         }
       ],
-      "cmoSampleIdFields": {
-  		"naToExtract": "",
-  		"normalizedPatientId": "",
-  		"sampleType": ""
-		},
       "libraries": [
         {
           "libraryIgoId": "",
@@ -71,7 +48,32 @@
             }
           ]
         }
-      ]
+      ],
+      "cmoPatientId": "",
+      "igoId": "",
+      "investigatorSampleId": "",
+      "species": "",
+      "sex": "",
+      "tumorOrNormal": "",
+      "preservation": "",
+      "specimenType": "",
+      "sampleOrigin": "",
+      "tissueLocation": "",
+      "baitSet": "",
+      "igoComplete": true,
+      "cmoSampleIdFields": {
+        "naToExtract": "",
+        "recipe": "",
+        "normalizedPatientId": "",
+        "sampleType": ""
+      }
     }
-  ]
+  ],
+  "pooledNormals": [
+    "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT/FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT_S118_R1_001.fastq.gz",
+    "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT/FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT_S118_R2_001.fastq.gz",
+    "/FASTQ/Project_POOLEDNORMALS/Sample_FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG/FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG_S22_R1_001.fastq.gz",
+    "/FASTQ/Project_POOLEDNORMALS/Sample_FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG/FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG_S22_R2_001.fastq.gz"
+  ],
+  "projectId": "22022"
 }

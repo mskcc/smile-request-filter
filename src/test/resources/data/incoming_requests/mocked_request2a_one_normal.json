@@ -1,0 +1,90 @@
+{
+  "requestId": "22022_CC",
+  "recipe": "GENESET101_BAITS",
+  "projectManagerName": "",
+  "piEmail": "",
+  "labHeadName": "James Holt",
+  "labHeadEmail": "holtj@mskcc.org",
+  "investigatorName": "Jessie Hall",
+  "investigatorEmail": "hallj@mskcc.org",
+  "dataAnalystName": "",
+  "dataAnalystEmail": "",
+  "otherContactEmails": "preclinical_group_shared@mskcc.org",
+  "dataAccessEmails": "",
+  "qcAccessEmails": "",
+  "isCmoRequest": true,
+  "bicAnalysis": false,
+  "samples": [
+    {
+      "cmoSampleName": "C-TX6DNG-N001-d",
+      "sampleName": "LMNO_4396_N",
+      "cmoSampleClass": "Normal",
+      "oncoTreeCode": "TPLL",
+      "collectionYear": "",
+      "tubeId": "4157451784",
+      "qcReports": [
+        {
+          "qcReportType": "LIBRARY",
+          "comments": "",
+          "investigatorDecision": "Continue processing"
+        }
+      ],
+      "libraries": [
+        {
+          "libraryIgoId": "22022_CC_3_1",
+          "libraryConcentrationNgul": 34.2,
+          "captureConcentrationNm": "1.461988304093567",
+          "captureInputNg": "50.0",
+          "captureName": "Pool-22022_BZ-22022_CC-Tube7_1",
+          "runs": [
+            {
+              "runMode": "HiSeq High Output",
+              "runId": "CRX_7395",
+              "flowCellId": "HGJMLBBXY",
+              "readLength": "101/8/8/101",
+              "runDate": "2020-05-20",
+              "flowCellLanes": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "fastqs": [
+                "/FASTQ/Project_22022_CC/Sample_LMNO_4396_N_IGO_22022_CC_3/LMNO_4396_N_IGO_22022_CC_3_S144_R1_001.fastq.gz",
+                "/FASTQ/Project_22022_CC/Sample_LMNO_4396_N_IGO_22022_CC_3/LMNO_4396_N_IGO_22022_CC_3_S144_R2_001.fastq.gz"
+              ]
+            }
+          ]
+        }
+      ],
+      "cmoPatientId": "C-TX6DNG",
+      "igoId": "22022_CC_3",
+      "investigatorSampleId": "LMNO_4396_N",
+      "species": "Human",
+      "sex": "F",
+      "tumorOrNormal": "Normal",
+      "preservation": "EDTA-Streck",
+      "specimenType": "Blood",
+      "sampleOrigin": "Buffy Coat",
+      "tissueLocation": "Blood",
+      "baitSet": "GENESET101_BAITS",
+      "igoComplete": true,
+      "cmoSampleIdFields": {
+        "naToExtract": "",
+        "sampleType": "Buffy Coat",
+        "normalizedPatientId": "MRN_REDACTED",
+        "recipe": "GENESET101_BAITS"
+      }
+    }
+  ],
+  "pooledNormals": [
+    "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT/FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT_S118_R1_001.fastq.gz",
+    "/FASTQ/Project_POOLEDNORMALS/Sample_FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT/FFPEPOOLEDNORMAL_IGO_GENESET101_TGCTAGCT_S118_R2_001.fastq.gz",
+    "/FASTQ/Project_POOLEDNORMALS/Sample_FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG/FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG_S22_R1_001.fastq.gz",
+    "/FASTQ/Project_POOLEDNORMALS/Sample_FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG/FROZENPOOLEDNORMAL_IGO_GENESET101_GCGGCTAG_S22_R2_001.fastq.gz"
+  ],
+  "projectId": "22022"
+}

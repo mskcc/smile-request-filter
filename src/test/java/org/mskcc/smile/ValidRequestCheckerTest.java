@@ -39,7 +39,7 @@ public class ValidRequestCheckerTest {
     @Test
     public void testValidRequestJson() throws Exception {
         MockJsonTestData requestJson = mockedRequestJsonDataMap
-                .get("mockRequest1JsonDataWith2T2N");
+                .get("mockIncomingRequest1JsonDataWith2T2N");
         String modifiedRequestJson = requestJson.getJsonString();
         Assert.assertNotNull(modifiedRequestJson);
     }
