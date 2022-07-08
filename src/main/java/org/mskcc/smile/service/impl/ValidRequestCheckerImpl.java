@@ -185,7 +185,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         }
         if (!hasInvestigatorSampleId(sampleMap)
                 || !hasIgoId(sampleMap)
-                || !hasBaitSet(sampleMap)
+                || !hasBaitSetOrRecipe(sampleMap)
                 || !hasCmoPatientId(sampleMap)
                 || !(hasValidSpecimenType(sampleMap) || hasSampleType(sampleMap))
                 || !hasNormalizedPatientId(sampleMap) || !hasFastQs(sampleMap)) {
@@ -290,6 +290,20 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return Boolean.FALSE;
         }
         return !isBlank(String.valueOf(igoIdOrPrimaryId));
+    }
+
+    private Boolean hasBaitSetOrRecipe(Map<String, String> sampleMap) {
+        return hasBaitSet(sampleMap) || hasRecipe(sampleMap);
+    }
+
+    private Boolean hasRecipe(Map<String, String> sampleMap) {
+        String recipe = null;
+        if (sampleMap.containsKey("cmoSampleIdFields")) {
+            Map<String, String> cmoSampleIdFields = mapper.convertValue(
+                    sampleMap.get("cmoSampleIdFields"), Map.class);
+            recipe = cmoSampleIdFields.get("recipe");
+        }
+        return !isBlank(recipe);
     }
 
     private Boolean hasBaitSet(Map<String, String> sampleMap) {
@@ -458,7 +472,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         }
         return Boolean.TRUE;
     }
-    
+
     private Boolean isBlank(String value) {
         return (Strings.isBlank(value) || value.equals("null"));
     }
