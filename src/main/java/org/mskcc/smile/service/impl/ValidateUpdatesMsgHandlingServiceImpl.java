@@ -36,7 +36,7 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
     @Value("${smile.request_update_topic}")
     private String SERVER_REQUEST_UPDATE_TOPIC;
 
-    @Value("${smile.sample_update_topic")
+    @Value("${smile.sample_update_topic}")
     private String SERVER_SAMPLE_UPDATE_TOPIC;
 
     @Value("${num.new_request_handler_threads}")
