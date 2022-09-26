@@ -2,11 +2,12 @@ package org.mskcc.smile.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import io.opentelemetry.api.trace.Span;
 import java.io.IOException;
 import java.util.Map;
 
 public interface ValidRequestChecker {
-    String getFilteredValidRequestJson(String requestJson)
+    String getFilteredValidRequestJson(Span parentSpan, String requestJson)
             throws JsonMappingException, JsonProcessingException, IOException;
     Boolean hasValidRequestLevelMetadata(String requestJson)
             throws JsonMappingException, JsonProcessingException, IOException;

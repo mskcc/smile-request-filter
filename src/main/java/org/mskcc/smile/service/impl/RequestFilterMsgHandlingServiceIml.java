@@ -1,6 +1,13 @@
 package org.mskcc.smile.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import io.nats.client.Message;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -62,9 +69,11 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
 
         final Phaser phaser;
         boolean interrupted = false;
+        final Tracer tracer;
 
         RequestFilterHandler(Phaser phaser) {
             this.phaser = phaser;
+            this.tracer = GlobalOpenTelemetry.get().getTracer("org.mskcc.smile.service.impl.RequestFilterMsgHandlingServiceImpl");
         }
 
         @Override
@@ -74,19 +83,25 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                 try {
                     String requestJson = requestFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
+                        Span requestFilterHandlerSpan = tracer.spanBuilder("RequestFilterHandler").startSpan();
+                        Scope scope = requestFilterHandlerSpan.makeCurrent();
+                        Span.current().addEvent("requestJson not null, starting validation.");
                         String requestId = validRequestChecker.getRequestId(requestJson);
-                        String filteredRequestJson = validRequestChecker.getFilteredValidRequestJson(
-                                requestJson);
+                        String filteredRequestJson = validRequestChecker.getFilteredValidRequestJson(requestFilterHandlerSpan, requestJson);
+                        scope = requestFilterHandlerSpan.makeCurrent();
                         Boolean passCheck = (filteredRequestJson != null);
 
+                        Attributes eventAttributes = Attributes.of(AttributeKey.stringKey("RequestId"), requestId);
                         if (validRequestChecker.isCmo(requestJson)) {
                             LOG.info("Handling CMO-specific sanity checking...");
                             if (passCheck) {
+                                Span.current().addEvent("Sanity check passed, publishing to: " + CMO_LABEL_GENERATOR_TOPIC, eventAttributes);
                                 LOG.info("Sanity check passed, publishing to: " + CMO_LABEL_GENERATOR_TOPIC);
                                 messagingGateway.publish(requestId,
                                     CMO_LABEL_GENERATOR_TOPIC,
                                     filteredRequestJson);
                             } else {
+                                Span.current().addEvent("Sanity check failed on request: " + requestId, eventAttributes);
                                 LOG.error("Sanity check failed on request: " + requestId);
                             }
 
@@ -101,6 +116,7 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                                 LOG.error("Sanity check failed on request: " + requestId);
                             }
                         }
+                        requestFilterHandlerSpan.end();
                     }
                     if (interrupted && requestFilterQueue.isEmpty()) {
                         break;
@@ -109,6 +125,8 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                     interrupted = true;
                 } catch (Exception e) {
                     LOG.error("Error during request handling", e);
+                } finally {
+                    //requestFilterHandlerSpan.end();
                 }
             }
             requestFilterHandlerShutdownLatch.countDown();

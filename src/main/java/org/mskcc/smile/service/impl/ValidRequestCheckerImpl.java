@@ -3,6 +3,11 @@ package org.mskcc.smile.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +27,7 @@ import org.mskcc.smile.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+//import javax.annotation.PostConstruct;
 
 @Component
 public class ValidRequestCheckerImpl implements ValidRequestChecker {
@@ -29,11 +35,20 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     @Autowired
     private RequestStatusLogger requestStatusLogger;
 
+    //@Autowired
+    //private OpenTelemetry openTelemetry;
+
     @Value("${igo.cmo_request_filter:false}")
     private Boolean igoCmoRequestFilter;
 
     private final ObjectMapper mapper = new ObjectMapper();
     private static final Log LOG = LogFactory.getLog(ValidRequestCheckerImpl.class);
+
+    private Tracer tracer;
+
+    public ValidRequestCheckerImpl() {
+        this.tracer = GlobalOpenTelemetry.get().getTracer("org.mskcc.smile.service.impl.ValidRequestCheckerImpl");
+    }
 
     /**
      * Checks if the request is a cmoRequest and has a requestId, and returns a
@@ -51,14 +66,22 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * @throws IOException
      */
     @Override
-    public String getFilteredValidRequestJson(String requestJson) throws IOException {
+    public String getFilteredValidRequestJson(Span parentSpan, String requestJson) throws IOException {
+        Span getFilteredSpan = tracer.spanBuilder("getFilteredValidRequestJsonSpan")
+            .setParent(Context.current().with(parentSpan)).startSpan();
+        Scope scope = getFilteredSpan.makeCurrent();
+        Span.current().addEvent("Inside getFilteredValidRequestJson");
         // first check if request-level metadata is valid
         if (!hasValidRequestLevelMetadata(requestJson)) {
+            Span.current().addEvent("Request does not have valid metadata.");
+            getFilteredSpan.end();
             return null;
         }
 
         // verify that request has 'samples' json field
         if (!requestHasSamples(requestJson)) {
+            Span.current().addEvent("Request does not have samples.");
+            getFilteredSpan.end();
             return null;
         }
 
@@ -85,16 +108,21 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (validSampleList.size() > 0) {
             if (validSampleList.size() < sampleList.length) {
                 requestJsonMap.replace("samples", validSampleList.toArray(new Object[0]));
+                Span.current().addEvent("CMO request passed sanity checking with some samples missing required CMO label fields");
                 LOG.info("CMO request passed sanity checking with some samples missing "
                         + "required CMO label fields");
                 requestStatusLogger.logRequestStatus(requestJson,
                         RequestStatusLogger.StatusType.CMO_REQUEST_WITH_SAMPLES_MISSING_CMO_LABEL_FIELDS);
             }
+            Span.current().addEvent("Request passed sanity checking.");
+            getFilteredSpan.end();
             return mapper.writeValueAsString(requestJsonMap);
         }
+        Span.current().addEvent("Request failed sanity checking.");
         LOG.error("Request failed sanity checking - logging request status...");
         requestStatusLogger.logRequestStatus(requestJson,
                 RequestStatusLogger.StatusType.CMO_REQUEST_FAILED_SANITY_CHECK);
+        getFilteredSpan.end();
         return null;
     }
 
