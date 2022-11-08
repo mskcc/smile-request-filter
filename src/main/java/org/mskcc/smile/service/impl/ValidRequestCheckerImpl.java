@@ -18,6 +18,7 @@ import org.mskcc.smile.commons.enums.SampleOrigin;
 import org.mskcc.smile.commons.enums.SampleType;
 import org.mskcc.smile.commons.enums.SpecimenType;
 import org.mskcc.smile.service.ValidRequestChecker;
+import org.mskcc.smile.service.util.RequestErrorMsg;
 import org.mskcc.smile.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private static final Log LOG = LogFactory.getLog(ValidRequestCheckerImpl.class);
+    private RequestErrorMsg requestErrorMsg;
 
     /**
      * Checks if the request is a cmoRequest and has a requestId, and returns a
@@ -59,6 +61,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
         // verify that request has 'samples' json field
         if (!requestHasSamples(requestJson)) {
+            // TODO: Build a requestErrorMsg and return it instead
             return null;
         }
 
@@ -72,10 +75,18 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         List<Object> validSampleList = new ArrayList<Object>();
         for (Object sample: sampleList) {
             Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
-            if (isCmoRequest && isValidCmoSample(sampleMap)) {
-                validSampleList.add(sample);
-            } else if (!isCmoRequest && isValidNonCmoSample(sampleMap)) {
-                validSampleList.add(sample);
+            if (isCmoRequest) {
+                if (isValidCmoSample(sampleMap)) {
+                    validSampleList.add(sample);
+                } else {
+                    //TODO: create the log message here
+                }
+            } else if (!isCmoRequest) {
+                if (isValidNonCmoSample(sampleMap)) {
+                    validSampleList.add(sample);
+                } else {
+                    //TODO: create the log message here
+                }
             }
         }
 
@@ -85,13 +96,17 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (validSampleList.size() > 0) {
             if (validSampleList.size() < sampleList.length) {
                 requestJsonMap.replace("samples", validSampleList.toArray(new Object[0]));
+                // TODO: should return requestErrorMsg to track samples that have been skipped
                 LOG.info("CMO request passed sanity checking with some samples missing "
                         + "required CMO label fields");
                 requestStatusLogger.logRequestStatus(requestJson,
                         RequestStatusLogger.StatusType.CMO_REQUEST_WITH_SAMPLES_MISSING_CMO_LABEL_FIELDS);
             }
+            // Add a check to see if any status has been assigned to requestErrorMsg
+            // if not assign passed status to the request
             return mapper.writeValueAsString(requestJsonMap);
         }
+        // TODO: the failed request log should be published to error tracker topic
         LOG.error("Request failed sanity checking - logging request status...");
         requestStatusLogger.logRequestStatus(requestJson,
                 RequestStatusLogger.StatusType.CMO_REQUEST_FAILED_SANITY_CHECK);
@@ -103,11 +118,6 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             JsonProcessingException, IOException {
         // first check if request-level metadata is valid
         if (!hasValidRequestLevelMetadata(requestJson)) {
-            return Boolean.FALSE;
-        }
-
-        // verify that request has 'samples' json field
-        if (!requestHasSamples(requestJson)) {
             return Boolean.FALSE;
         }
 
@@ -138,6 +148,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     public Boolean hasValidRequestLevelMetadata(String requestJson)
             throws IOException {
         if (StringUtils.isAllBlank(requestJson)) {
+            // TODO: error msg --> empty/null metadata
             return Boolean.FALSE;
         }
         Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
@@ -146,14 +157,22 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
         // if requestId is blank then nothing to do, return null
         if (!hasRequestId) {
+            // TODO: error msg --> missing requestId
             LOG.warn("CMO request failed sanity checking - missing requestId...");
             requestStatusLogger.logRequestStatus(requestJson,
                     RequestStatusLogger.StatusType.CMO_REQUEST_WITH_SAMPLES_MISSING_CMO_LABEL_FIELDS);
             return Boolean.FALSE;
         }
+        
+        // verify that request has 'samples' json field
+        if (!requestHasSamples(requestJson)) {
+            //TODO: error msg --> no samples found
+            return Boolean.FALSE;
+        }
 
         // if cmo filter is enabled then skip request if it is non-cmo
         if (igoCmoRequestFilter && !isCmoRequest) {
+            // TODO: error msg --> skipped non-cmo request
             LOG.warn("CMO request filter enabled - skipping non-CMO request: "
                     + getRequestId(requestJsonMap));
             requestStatusLogger.logRequestStatus(requestJson,

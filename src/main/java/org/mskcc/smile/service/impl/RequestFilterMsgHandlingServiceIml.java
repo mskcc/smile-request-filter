@@ -87,6 +87,7 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                                     CMO_LABEL_GENERATOR_TOPIC,
                                     filteredRequestJson);
                             } else {
+                                // TODO: publish the cmo request error msg here
                                 LOG.error("Sanity check failed on request: " + requestId);
                             }
 
@@ -98,6 +99,7 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                                         IGO_NEW_REQUEST_TOPIC,
                                         filteredRequestJson);
                             } else {
+                                // TODO: publish the non-cmo request error msg here
                                 LOG.error("Sanity check failed on request: " + requestId);
                             }
                         }
@@ -176,6 +178,7 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                     LOG.error("Exception during processing of request on topic: "
                             + IGO_REQUEST_FILTER_TOPIC, e);
                     try {
+                        // TODO: Track parsing errors here
                         requestStatusLogger.logRequestStatus(message.toString(),
                                 RequestStatusLogger.StatusType.REQUEST_PARSING_ERROR);
                     } catch (IOException ex) {
