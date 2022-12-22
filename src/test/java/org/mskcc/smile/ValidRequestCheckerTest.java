@@ -1,5 +1,8 @@
 package org.mskcc.smile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import junit.framework.Assert;
@@ -8,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.mskcc.smile.config.MockDataConfig;
 import org.mskcc.smile.model.MockJsonTestData;
 import org.mskcc.smile.service.ValidRequestChecker;
+import org.mskcc.smile.service.impl.ValidRequestCheckerImpl.ErrorDesc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
@@ -17,6 +21,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ComponentScan("org.mskcc.smile.service")
 public class ValidRequestCheckerTest {
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     ValidRequestChecker validRequestChecker;
@@ -77,7 +82,21 @@ public class ValidRequestCheckerTest {
                 .get("mockRequest1eNullStringBaitSet");
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
-        Assert.assertNull(modifiedRequestJson);
+        // This requestJson should now have status
+        Map<String, String> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        System.out.println("\n\n\n\nREQUEST STATUS\n\n\n\n" + requestJsonMap.get("status"));
+
+        for (Object sample: sampleList) {
+            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
+            //System.out.println("\n\n\n\nSTATUS\n\n\n\n" + sampleMap.get("status"));
+
+        }
+                
+        Assert.assertNotNull(modifiedRequestJson);
+        Assert.assertNotNull(requestJsonMap.get("status"));
+
     }
 
     /**

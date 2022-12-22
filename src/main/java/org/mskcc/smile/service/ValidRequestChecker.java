@@ -10,6 +10,8 @@ public interface ValidRequestChecker {
             throws JsonMappingException, JsonProcessingException, IOException;
     Boolean hasValidRequestLevelMetadata(String requestJson)
             throws JsonMappingException, JsonProcessingException, IOException;
+    String validateAndUpdateRequestMetadata(String requestJson) throws IOException;
+    String validateAndUpdateSampleMetadata(String sampleJson, Boolean isCmo) throws IOException;
     Boolean isValidCmoSample(Map<String, String> sampleMap)
             throws JsonMappingException, JsonProcessingException;
     Boolean isValidNonCmoSample(Map<String, String> sampleMap)

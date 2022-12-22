@@ -2,7 +2,6 @@ package org.mskcc.smile.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -17,7 +16,6 @@ import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.smile.service.RequestFilterMessageHandlingService;
 import org.mskcc.smile.service.ValidRequestChecker;
-import org.mskcc.smile.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -43,9 +41,6 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
 
     @Autowired
     private ValidRequestChecker validRequestChecker;
-
-    @Autowired
-    private RequestStatusLogger requestStatusLogger;
 
     private final ObjectMapper mapper = new ObjectMapper();
     private static boolean initialized = false;
@@ -75,30 +70,21 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                     String requestJson = requestFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
                         String requestId = validRequestChecker.getRequestId(requestJson);
-                        String filteredRequestJson = validRequestChecker.getFilteredValidRequestJson(
+                        String requestJsonWithStatus = validRequestChecker.getFilteredValidRequestJson(
                                 requestJson);
-                        Boolean passCheck = (filteredRequestJson != null);
-
-                        if (validRequestChecker.isCmo(requestJson)) {
-                            LOG.info("Handling CMO-specific sanity checking...");
-                            if (passCheck) {
-                                LOG.info("Sanity check passed, publishing to: " + CMO_LABEL_GENERATOR_TOPIC);
+                        if (requestJsonWithStatus != null) {
+                            if (validRequestChecker.isCmo(requestJson)) {
+                                LOG.info("Handling CMO request...");
+                                LOG.info("Publishing to: " + CMO_LABEL_GENERATOR_TOPIC);
                                 messagingGateway.publish(requestId,
                                     CMO_LABEL_GENERATOR_TOPIC,
-                                    filteredRequestJson);
+                                    requestJsonWithStatus);
                             } else {
-                                LOG.error("Sanity check failed on request: " + requestId);
-                            }
-
-                        } else {
-                            LOG.info("Handling non-CMO request...");
-                            if (passCheck) {
-                                LOG.info("Sanity check passed, publishing to: " + IGO_NEW_REQUEST_TOPIC);
+                                LOG.info("Handling non-CMO request...");
+                                LOG.info("Publishing to: " + IGO_NEW_REQUEST_TOPIC);
                                 messagingGateway.publish(requestId,
                                         IGO_NEW_REQUEST_TOPIC,
-                                        filteredRequestJson);
-                            } else {
-                                LOG.error("Sanity check failed on request: " + requestId);
+                                        requestJsonWithStatus);
                             }
                         }
                     }
@@ -175,12 +161,6 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                 } catch (Exception e) {
                     LOG.error("Exception during processing of request on topic: "
                             + IGO_REQUEST_FILTER_TOPIC, e);
-                    try {
-                        requestStatusLogger.logRequestStatus(message.toString(),
-                                RequestStatusLogger.StatusType.REQUEST_PARSING_ERROR);
-                    } catch (IOException ex) {
-                        LOG.error("Error during attempt to write request status to logger file", ex);
-                    }
                 }
             }
         });

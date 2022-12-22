@@ -3,7 +3,6 @@ package org.mskcc.smile.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -17,7 +16,6 @@ import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.smile.service.ValidRequestChecker;
 import org.mskcc.smile.service.ValidateUpdatesMessageHandlingService;
-import org.mskcc.smile.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,9 +42,6 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
 
     @Autowired
     private ValidRequestChecker validRequestChecker;
-
-    @Autowired
-    private RequestStatusLogger requestStatusLogger;
 
     private static boolean initialized = false;
     private static Gateway messagingGateway;
@@ -112,18 +107,13 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                 try {
                     String requestJson = requestUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
-                        Boolean passCheck = validRequestChecker.hasValidRequestLevelMetadata(requestJson);
+                        String requestMetadataWithStatus = validRequestChecker.validateAndUpdateRequestMetadata(requestJson);
 
-                        if (passCheck) {
-                            LOG.info("Sanity check passed, publishing to: " + SERVER_REQUEST_UPDATE_TOPIC);
+                        if (requestMetadataWithStatus != null) {
+                            LOG.info("Publishing to: " + SERVER_REQUEST_UPDATE_TOPIC);
                             messagingGateway.publish(
                                     SERVER_REQUEST_UPDATE_TOPIC,
                                     requestJson);
-                        } else {
-                            LOG.error("Sanity check failed on Request updates: "
-                                    + validRequestChecker.getRequestId(requestJson));
-                            requestStatusLogger.logRequestStatus(requestJson,
-                                    RequestStatusLogger.StatusType.REQUEST_UPDATE_FAILED_SANITY_CHECK);
                         }
                     }
                     if (interrupted && requestUpdateFilterQueue.isEmpty()) {
@@ -154,39 +144,13 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                 try {
                     String sampleJson = sampleUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (sampleJson != null) {
-                        Map<String, String> sampleMap = mapper.readValue(sampleJson, Map.class);
-                        Boolean hasRequestId = validRequestChecker.hasRequestId(sampleJson);
-                        if (!hasRequestId) {
-                            LOG.warn("Cannot extract request ID information from sample update message");
-                            requestStatusLogger.logRequestStatus(sampleJson,
-                                    RequestStatusLogger.StatusType.SAMPLE_UPDATE_FAILED_SANITY_CHECK);
-                            continue;
-                        }
-
                         Boolean isCmoSample = validRequestChecker.isCmo(sampleJson);
-                        if (isCmoSample) {
-                            if (validRequestChecker.isValidCmoSample(sampleMap)) {
-                                LOG.info("Sanity check passed, publishing CMO sample"
-                                        + "update to: " + CMO_LABEL_UPDATE_TOPIC);
-                                messagingGateway.publish(CMO_LABEL_UPDATE_TOPIC,
-                                        sampleJson);
-                            } else {
-                                LOG.error("Sanity check failed on CMO sample updates ");
-                                requestStatusLogger.logRequestStatus(sampleJson,
-                                        RequestStatusLogger.StatusType.SAMPLE_UPDATE_FAILED_SANITY_CHECK);
-                            }
-                        } else {
-                            if (validRequestChecker.isValidNonCmoSample(sampleMap)) {
-                                LOG.info("Sanity check passed, publishing non-CMO "
-                                        + "sample update to: " + SERVER_SAMPLE_UPDATE_TOPIC);
-                                messagingGateway.publish(
-                                        SERVER_SAMPLE_UPDATE_TOPIC,
-                                        sampleJson);
-                            } else {
-                                LOG.error("Sanity check failed on non-CMO sample update received.");
-                                requestStatusLogger.logRequestStatus(sampleJson,
-                                        RequestStatusLogger.StatusType.SAMPLE_UPDATE_FAILED_SANITY_CHECK);
-                            }
+                        String sampleMetadataWithStatus = validRequestChecker.validateAndUpdateSampleMetadata(sampleJson, isCmoSample);
+                        if (sampleMetadataWithStatus != null) {
+                            String topic = isCmoSample ? CMO_LABEL_UPDATE_TOPIC
+                                    : SERVER_SAMPLE_UPDATE_TOPIC;
+                            LOG.info("Publishing sample update to: " + topic);
+                            messagingGateway.publish(topic,sampleMetadataWithStatus);    
                         }
                     }
                     if (interrupted && sampleUpdateFilterQueue.isEmpty()) {
