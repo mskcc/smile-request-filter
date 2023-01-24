@@ -263,8 +263,8 @@ public class ValidRequestCheckerTest {
             return Boolean.FALSE;
         }
         // TODO: find a better way to check if the validationReport list is empty
-        if ((status.getValidationStatus() == Boolean.FALSE && status.getValidationReport().length() > 2)
-            || (status.getValidationStatus() == Boolean.TRUE && status.getValidationReport().length() <= 2)) {
+        if ((status.getValidationStatus() == Boolean.FALSE && !status.getValidationReport().equals("[]"))
+            || (status.getValidationStatus() == Boolean.TRUE && status.getValidationReport().equals("[]"))) {
             return Boolean.TRUE;
         }
         return Boolean.FALSE;
