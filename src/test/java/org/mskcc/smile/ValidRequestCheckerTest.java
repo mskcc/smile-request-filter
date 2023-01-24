@@ -1,17 +1,14 @@
 package org.mskcc.smile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mskcc.smile.config.MockDataConfig;
 import org.mskcc.smile.model.MockJsonTestData;
+import org.mskcc.smile.model.Status;
 import org.mskcc.smile.service.ValidRequestChecker;
-import org.mskcc.smile.service.impl.ValidRequestCheckerImpl.ErrorDesc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
@@ -70,9 +67,11 @@ public class ValidRequestCheckerTest {
                 .get("mockRequest2aEmptySampleManifestValues");
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
-        Assert.assertNull(modifiedRequestJson);
+        Assert.assertNotNull(modifiedRequestJson);
+        Assert.assertEquals(Boolean.TRUE, hasStatus(modifiedRequestJson));
+
     }
-    
+
     /**
      * Test for handling null or empty baitSet in sampleManifest inrequestJson
      */
@@ -82,21 +81,9 @@ public class ValidRequestCheckerTest {
                 .get("mockRequest1eNullStringBaitSet");
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
-        // This requestJson should now have status
-        Map<String, String> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
-        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
-                Object[].class);
-        System.out.println("\n\n\n\nREQUEST STATUS\n\n\n\n" + requestJsonMap.get("status"));
 
-        for (Object sample: sampleList) {
-            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
-            //System.out.println("\n\n\n\nSTATUS\n\n\n\n" + sampleMap.get("status"));
-
-        }
-                
         Assert.assertNotNull(modifiedRequestJson);
-        Assert.assertNotNull(requestJsonMap.get("status"));
-
+        Assert.assertEquals(Boolean.TRUE, hasStatus(modifiedRequestJson));
     }
 
     /**
@@ -108,7 +95,8 @@ public class ValidRequestCheckerTest {
                 .get("mockRequest1cJsonDataWithMAS");
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
-        Assert.assertNull(modifiedRequestJson);
+        Assert.assertNotNull(modifiedRequestJson);
+        Assert.assertEquals(Boolean.TRUE, hasStatus(modifiedRequestJson));
     }
 
     /**
@@ -238,6 +226,47 @@ public class ValidRequestCheckerTest {
                 .get("mockRequest1AllSamplesMissingFastQs");
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
-        Assert.assertNull(modifiedRequestJson);
+        Assert.assertNotNull(modifiedRequestJson);
+        Assert.assertEquals(Boolean.TRUE, hasStatus(modifiedRequestJson));
+    }
+
+    /**
+     * hasStatus check if a given json has Status fields set up properly
+     * @param requestJson
+     * @throws Exception
+     */
+    private Boolean hasStatus(String requestJson) throws Exception {
+        Map<String, String> requestJsonMap = mapper.readValue(requestJson, Map.class);
+
+        if (requestJsonMap.get("samples") != null)  {
+            String[] sampleList = mapper.readValue(requestJsonMap.get("samples"),
+                    String[].class);
+            for (String sampleString: sampleList) {
+                Map<String, String> sampleMap = mapper.readValue(sampleString, Map.class);
+                if (!isValidStatusReport(sampleMap.get("status"))) {
+                    return Boolean.FALSE;
+                }
+            }
+        }
+        return isValidStatusReport(requestJsonMap.get("status"));
+    }
+
+    /**
+     * isValidStatusReport checks if a false status field has a populated validationReport
+     * Also checks is a true status field has an empty validationReport
+     * @param jsonString
+     * @throws Exception
+     */
+    private Boolean isValidStatusReport(String jsonString) throws Exception {
+        Status status = mapper.readValue(jsonString, Status.class);
+        if (status.getValidationStatus() == null || status.getValidationReport() == null) {
+            return Boolean.FALSE;
+        }
+        // TODO: find a better way to check if the validationReport list is empty
+        if ((status.getValidationStatus() == Boolean.FALSE && status.getValidationReport().length() > 2)
+            || (status.getValidationStatus() == Boolean.TRUE && status.getValidationReport().length() <= 2)) {
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
     }
 }

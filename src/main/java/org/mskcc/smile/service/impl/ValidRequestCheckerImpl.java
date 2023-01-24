@@ -27,10 +27,10 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     private Boolean igoCmoRequestFilter;
 
     private final ObjectMapper mapper = new ObjectMapper();
-    
+
     List<Map.Entry<String, ErrorDesc>> requestValidationReport;
     List<Map.Entry<String, ErrorDesc>> sampleValidationReport;
-    
+
     public enum ErrorDesc {
         NULL_OR_EMPTY,
         INVALID_TYPE,
@@ -60,9 +60,9 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             // This should be dropped
             return null;
         }
-        
+
         Map<String, String> requestJsonMapString = mapper.readValue(requestJson, Map.class);
-        
+
         // first check if request-level metadata is valid
         if (!hasValidRequestLevelMetadata(requestJson)) {
             return addStatusToMetadataJson(requestJsonMapString, Boolean.FALSE, requestValidationReport);
@@ -90,7 +90,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             if (sampleMap != null && !sampleMap.isEmpty()
                     && hasIgoId(sampleMap) && hasInvestigatorSampleId(sampleMap)) {
                 if ((isCmoRequest && isValidCmoSample(sampleMap))
-                        ||(!isCmoRequest && isValidNonCmoSample(sampleMap))) {
+                        || (!isCmoRequest && isValidNonCmoSample(sampleMap))) {
                     sampleListWithStatus.add(addStatusToMetadataJson(sampleMap,
                             Boolean.TRUE, sampleValidationReport));
                 }
@@ -99,8 +99,9 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             }
         }
 
+        requestJsonMapString.replace("samples", mapper.writeValueAsString(sampleListWithStatus));
+
         if (sampleListWithStatus.size() > 0) {
-            requestJsonMap.replace("samples", mapper.writeValueAsString(sampleListWithStatus));
             return addStatusToMetadataJson(requestJsonMapString,
                     Boolean.TRUE, requestValidationReport);
         }
@@ -108,7 +109,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         addEntryToValidationReport(requestValidationReport, "samples", ErrorDesc.NULL_OR_EMPTY);
         return addStatusToMetadataJson(requestJsonMapString, Boolean.FALSE, requestValidationReport);
     }
-    
+
     @Override
     public String validateAndUpdateRequestMetadata(String requestJson) throws IOException {
         requestValidationReport = new ArrayList<Map.Entry<String, ErrorDesc>>();
@@ -118,9 +119,10 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         }
         return addStatusToMetadataJson(requestJsonMap, Boolean.FALSE, requestValidationReport);
     }
-    
+
     @Override
-    public String validateAndUpdateSampleMetadata(String sampleJson, Boolean isCmo) throws JsonProcessingException {
+    public String validateAndUpdateSampleMetadata(String sampleJson, Boolean isCmo)
+            throws JsonProcessingException {
         sampleValidationReport = new ArrayList<Map.Entry<String, ErrorDesc>>();
         Map<String, String> sampleMap = mapper.readValue(sampleJson, Map.class);
         if (StringUtils.isEmpty(sampleJson)) {
@@ -211,19 +213,17 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
         return Boolean.TRUE;
     }
-    
-    String addStatusToMetadataJson(Map<String, String> jsonMap, Boolean isValid, List<Map.Entry<String, ErrorDesc>> validationReport) throws JsonMappingException, JsonProcessingException {
-        // Map<String, String> jsonMap = mapper.readValue(json, Map.class);
+
+    String addStatusToMetadataJson(Map<String, String> jsonMap, Boolean isValid,
+            List<Map.Entry<String, ErrorDesc>> validationReport)
+                    throws JsonMappingException, JsonProcessingException {
         Status status = new Status(isValid, validationReport.toString());
         jsonMap.put("status", mapper.writeValueAsString(status));
-        //System.out.println("\n\n\n\nSTATUS\n\n\n\n" + jsonMap.get("status"));
-
         return mapper.writeValueAsString(jsonMap);
     }
-    
+
     void addEntryToValidationReport(List<Map.Entry<String, ErrorDesc>> validationReport,
             String fieldName, ErrorDesc desc) {
-        System.out.println("\n\n\n\nADDING NEW REPORT\n\n\n\n" + fieldName + desc);
         validationReport.add(new AbstractMap.SimpleImmutableEntry<>(fieldName, desc));
     }
 
@@ -248,7 +248,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                 && hasBaitSetOrRecipe(sampleMap)
                 && hasCmoPatientId(sampleMap)
                 && (hasValidSpecimenType(sampleMap) || hasSampleType(sampleMap))
-                && hasNormalizedPatientId(sampleMap) 
+                && hasNormalizedPatientId(sampleMap)
                 && hasFastQs(sampleMap)) {
             return Boolean.TRUE;
         }
@@ -356,7 +356,6 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     private Boolean hasRecipe(Map<String, String> sampleMap) {
-        String recipe = null;
         if (sampleMap.containsKey("cmoSampleIdFields")) {
             Map<String, String> cmoSampleIdFields = mapper.convertValue(
                     sampleMap.get("cmoSampleIdFields"), Map.class);
@@ -371,12 +370,11 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
     private Boolean hasBaitSet(Map<String, String> sampleMap) {
         if (!isBlank(sampleMap.get("baitSet"))) {
-            addEntryToValidationReport(sampleValidationReport, "baitSet",
-                    ErrorDesc.NULL_OR_EMPTY);
-            System.out.println("\n\n\n\n\nEMPTY baitset");
-            return Boolean.FALSE;
+            return Boolean.TRUE;
         }
-        return Boolean.TRUE;
+        addEntryToValidationReport(sampleValidationReport, "baitSet",
+                ErrorDesc.NULL_OR_EMPTY);
+        return Boolean.FALSE;
     }
 
     private Boolean hasInvestigatorSampleId(Map<String, String> sampleMap) {

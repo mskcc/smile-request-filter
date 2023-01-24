@@ -107,7 +107,8 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                 try {
                     String requestJson = requestUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
-                        String requestMetadataWithStatus = validRequestChecker.validateAndUpdateRequestMetadata(requestJson);
+                        String requestMetadataWithStatus = validRequestChecker
+                                .validateAndUpdateRequestMetadata(requestJson);
 
                         if (requestMetadataWithStatus != null) {
                             LOG.info("Publishing to: " + SERVER_REQUEST_UPDATE_TOPIC);
@@ -145,7 +146,8 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                     String sampleJson = sampleUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (sampleJson != null) {
                         Boolean isCmoSample = validRequestChecker.isCmo(sampleJson);
-                        String sampleMetadataWithStatus = validRequestChecker.validateAndUpdateSampleMetadata(sampleJson, isCmoSample);
+                        String sampleMetadataWithStatus = validRequestChecker
+                                .validateAndUpdateSampleMetadata(sampleJson, isCmoSample);
                         if (sampleMetadataWithStatus != null) {
                             String topic = isCmoSample ? CMO_LABEL_UPDATE_TOPIC
                                     : SERVER_SAMPLE_UPDATE_TOPIC;
