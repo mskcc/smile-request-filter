@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -74,7 +75,11 @@ public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsg
                 try {
                     String requestJson = promotedRequestQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
-                        if (validRequestChecker.isValidPromotedRequest(requestJson)) {
+                        Map<String, Object> promotedRequestJsonMap =
+                                validRequestChecker.generatePromotedRequestValidationMap(requestJson);
+                        Map<String, Object> requestStatus =
+                                mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
+                        if ((Boolean) requestStatus.get("validationStatus")) {
                             // if request is cmo then publish to CMO_PROMOTED_LABEL_TOPIC
                             // otherwise publish to IGO_PROMOTED_REQUEST_TOPIC
                             String topic = validRequestChecker.isCmo(requestJson)

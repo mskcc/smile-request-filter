@@ -112,8 +112,9 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                 try {
                     String requestJson = requestUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
-                        Boolean passCheck = validRequestChecker.hasValidRequestLevelMetadata(requestJson);
-
+                        Map<String, Object> requestStatus =
+                                validRequestChecker.generateRequestStatusValidationMap(requestJson);
+                        Boolean passCheck = (Boolean) requestStatus.get("validationStatus");
                         if (passCheck) {
                             LOG.info("Sanity check passed, publishing to: " + SERVER_REQUEST_UPDATE_TOPIC);
                             messagingGateway.publish(
@@ -154,7 +155,7 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                 try {
                     String sampleJson = sampleUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (sampleJson != null) {
-                        Map<String, String> sampleMap = mapper.readValue(sampleJson, Map.class);
+                        Map<String, Object> sampleMap = mapper.readValue(sampleJson, Map.class);
                         Boolean hasRequestId = validRequestChecker.hasRequestId(sampleJson);
                         if (!hasRequestId) {
                             LOG.warn("Cannot extract request ID information from sample update message");
@@ -165,7 +166,10 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
 
                         Boolean isCmoSample = validRequestChecker.isCmo(sampleJson);
                         if (isCmoSample) {
-                            if (validRequestChecker.isValidCmoSample(sampleMap)) {
+                            Map<String, Object> sampleStatus =
+                                    validRequestChecker.generateCmoSampleValidationMap(sampleMap);
+                            Boolean passCheck = (Boolean) sampleStatus.get("validationStatus");
+                            if (passCheck) {
                                 LOG.info("Sanity check passed, publishing CMO sample"
                                         + "update to: " + CMO_LABEL_UPDATE_TOPIC);
                                 messagingGateway.publish(CMO_LABEL_UPDATE_TOPIC,
@@ -176,7 +180,10 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                                         RequestStatusLogger.StatusType.SAMPLE_UPDATE_FAILED_SANITY_CHECK);
                             }
                         } else {
-                            if (validRequestChecker.isValidNonCmoSample(sampleMap)) {
+                            Map<String, Object> sampleStatus =
+                                    validRequestChecker.generateNonCmoSampleValidationMap(sampleMap);
+                            Boolean passCheck = (Boolean) sampleStatus.get("validationStatus");
+                            if (passCheck) {
                                 LOG.info("Sanity check passed, publishing non-CMO "
                                         + "sample update to: " + SERVER_SAMPLE_UPDATE_TOPIC);
                                 messagingGateway.publish(

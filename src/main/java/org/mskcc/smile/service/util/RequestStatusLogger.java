@@ -30,6 +30,7 @@ public class RequestStatusLogger {
     /**
      * Request StatusType descriptions:
      * - REQUEST_WITH_MISSING_SAMPLES: a request that came in with no sample metadata
+     * - REQUEST_MISSING_REQUEST_ID: a request missing a request id
      * - CMO_REQUEST_WITH_SAMPLES_MISSING_CMO_LABEL_FIELDS: a CMO request with sample metadata
      *        that is missing required fields (cmoPatientId, baitSet)
      * - REQUEST_PARSING_ERROR: json parsing exception thrown
@@ -49,6 +50,7 @@ public class RequestStatusLogger {
      */
     public enum StatusType {
         REQUEST_WITH_MISSING_SAMPLES,
+        REQUEST_MISSING_REQUEST_ID,
         CMO_REQUEST_WITH_SAMPLES_MISSING_CMO_LABEL_FIELDS,
         REQUEST_PARSING_ERROR,
         CMO_REQUEST_FILTER_SKIPPED_REQUEST,

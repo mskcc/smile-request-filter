@@ -8,15 +8,17 @@ import java.util.Map;
 public interface ValidRequestChecker {
     String getFilteredValidRequestJson(String requestJson)
             throws JsonMappingException, JsonProcessingException, IOException;
-    Boolean hasValidRequestLevelMetadata(String requestJson)
+    Map<String, Object> generateRequestStatusValidationMap(String requestJson)
             throws JsonMappingException, JsonProcessingException, IOException;
-    Boolean isValidCmoSample(Map<String, String> sampleMap)
+    Map<String, Object> generateCmoSampleValidationMap(Map<String, Object> sampleMap)
             throws JsonMappingException, JsonProcessingException;
-    Boolean isValidNonCmoSample(Map<String, String> sampleMap)
+    Map<String, Object> generateNonCmoSampleValidationMap(Map<String, Object> sampleMap)
             throws JsonMappingException, JsonProcessingException;
     Boolean isCmo(String json) throws JsonProcessingException;
     String getRequestId(String json) throws JsonProcessingException;
     Boolean hasRequestId(String json) throws JsonProcessingException;
-    Boolean isValidPromotedRequest(String requestJson) throws JsonMappingException,
+    Map<String, Object> generatePromotedRequestValidationMap(String requestJson) throws JsonMappingException,
             JsonProcessingException, IOException;
+    Map<String, Object> generatePromotedSampleValidationMap(Map<String, Object> sampleMap)
+            throws JsonMappingException, JsonProcessingException;
 }
