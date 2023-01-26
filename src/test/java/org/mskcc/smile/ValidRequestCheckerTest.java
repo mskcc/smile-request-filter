@@ -1,6 +1,6 @@
 package org.mskcc.smile;
 
-import java.util.HashMap;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import junit.framework.Assert;
 import org.junit.Test;
@@ -17,6 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ComponentScan("org.mskcc.smile.service")
 public class ValidRequestCheckerTest {
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     ValidRequestChecker validRequestChecker;
@@ -40,8 +41,20 @@ public class ValidRequestCheckerTest {
     public void testValidRequestJson() throws Exception {
         MockJsonTestData requestJson = mockedRequestJsonDataMap
                 .get("mockIncomingRequest1JsonDataWith2T2N");
-        String modifiedRequestJson = requestJson.getJsonString();
-        Assert.assertNotNull(modifiedRequestJson);
+        String modifiedRequestJson = validRequestChecker
+                .getFilteredValidRequestJson(requestJson.getJsonString());
+        Map<String, Object> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
+        Map<String, Object> requestStatus = mapper.convertValue(requestJsonMap.get("status"), Map.class);
+        System.out.println("\n\n\n" + modifiedRequestJson + "\n\n\n");
+        Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
+
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        for (Object sample: sampleList) {
+            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
+            Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
+            Assert.assertTrue((Boolean) sampleStatus.get("validationStatus"));
+        }
     }
 
     /**
@@ -53,7 +66,17 @@ public class ValidRequestCheckerTest {
                 .get("mockRequest4JsonNullOrEmptyValues");
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
-        Assert.assertNotNull(modifiedRequestJson);
+        Map<String, Object> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
+        Map<String, Object> requestStatus = mapper.convertValue(requestJsonMap.get("status"), Map.class);
+        Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
+
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        for (Object sample: sampleList) {
+            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
+            Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
+            Assert.assertTrue((Boolean) sampleStatus.get("validationStatus"));
+        }
     }
 
     /**
@@ -65,9 +88,19 @@ public class ValidRequestCheckerTest {
                 .get("mockRequest2aEmptySampleManifestValues");
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
-        Assert.assertNull(modifiedRequestJson);
+        Map<String, Object> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
+        Map<String, Object> requestStatus = mapper.convertValue(requestJsonMap.get("status"), Map.class);
+        Assert.assertFalse((Boolean) requestStatus.get("validationStatus"));
+
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        for (Object sample: sampleList) {
+            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
+            Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
+            Assert.assertFalse((Boolean) sampleStatus.get("validationStatus"));
+        }
     }
-    
+
     /**
      * Test for handling null or empty baitSet in sampleManifest inrequestJson
      */
@@ -77,7 +110,17 @@ public class ValidRequestCheckerTest {
                 .get("mockRequest1eNullStringBaitSet");
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
-        Assert.assertNull(modifiedRequestJson);
+        Map<String, Object> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
+        Map<String, Object> requestStatus = mapper.convertValue(requestJsonMap.get("status"), Map.class);
+        Assert.assertFalse((Boolean) requestStatus.get("validationStatus"));
+
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        for (Object sample: sampleList) {
+            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
+            Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
+            Assert.assertFalse((Boolean) sampleStatus.get("validationStatus"));
+        }
     }
 
     /**
@@ -89,7 +132,17 @@ public class ValidRequestCheckerTest {
                 .get("mockRequest1cJsonDataWithMAS");
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
-        Assert.assertNull(modifiedRequestJson);
+        Map<String, Object> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
+        Map<String, Object> requestStatus = mapper.convertValue(requestJsonMap.get("status"), Map.class);
+        Assert.assertFalse((Boolean) requestStatus.get("validationStatus"));
+
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        for (Object sample: sampleList) {
+            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
+            Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
+            Assert.assertFalse((Boolean) sampleStatus.get("validationStatus"));
+        }
     }
 
     /**
@@ -155,35 +208,55 @@ public class ValidRequestCheckerTest {
     public void testValidPromotedRequest() throws Exception {
         String requestJson = "{\"requestId\":\"1456_T\",\"projectId\":\"1456\",\"isCmoRequest\":"
                 + "true,\"samples\":[{\"igoId\":\"1456_T_1\",\"cmoPatientId\":\"C-8484\"}]}";
-        Assert.assertTrue(validRequestChecker.isValidPromotedRequest(requestJson));
+        Map<String, Object> promotedRequestJsonMap =
+                validRequestChecker.generatePromotedRequestValidationMap(requestJson);
+        Map<String, Object> requestStatus =
+                mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
+        Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
     }
 
     @Test
     public void testValidPromotedRequestFailedSample() throws Exception {
         String requestJson = "{\"requestId\":\"1456_T\",\"projectId\":\"1456\",\"isCmoRequest\":"
                 + "true,\"samples\":[{\"notTheRightIdentifier\":\"1456_T_1\",\"cmoPatientId\":\"C-8484\"}]}";
-        Assert.assertFalse(validRequestChecker.isValidPromotedRequest(requestJson));
+        Map<String, Object> promotedRequestJsonMap =
+                validRequestChecker.generatePromotedRequestValidationMap(requestJson);
+        Map<String, Object> requestStatus =
+                mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
+        Assert.assertFalse((Boolean) requestStatus.get("validationStatus"));
     }
 
     @Test
     public void testValidPromotedRequestUniversalSchema() throws Exception {
         String requestJson = "{\"igoRequestId\":\"1456_T\",\"igoProjectId\":\"1456\",\"isCmoRequest\":"
                 + "true,\"samples\":[{\"primaryId\":\"1456_T_1\",\"cmoPatientId\":\"C-8484\"}]}";
-        Assert.assertTrue(validRequestChecker.isValidPromotedRequest(requestJson));
+        Map<String, Object> promotedRequestJsonMap =
+                validRequestChecker.generatePromotedRequestValidationMap(requestJson);
+        Map<String, Object> requestStatus =
+                mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
+        Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
     }
 
     @Test
     public void testValidPromotedRequestMissingProjectId() throws Exception {
         String requestJson = "{\"igoRequestId\":\"1456_T\",\"isCmoRequest\":"
                 + "true,\"samples\":[{\"primaryId\":\"1456_T_1\",\"cmoPatientId\":\"C-8484\"}]}";
-        Assert.assertTrue(validRequestChecker.isValidPromotedRequest(requestJson));
+        Map<String, Object> promotedRequestJsonMap =
+                validRequestChecker.generatePromotedRequestValidationMap(requestJson);
+        Map<String, Object> requestStatus =
+                mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
+        Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
     }
 
     @Test
     public void testValidPromotedRequestMissingRequestId() throws Exception {
         String requestJson = "{\"projectId\":\"1456\",\"isCmoRequest\":"
                 + "true,\"samples\":[{\"igoId\":\"1456_T_1\",\"cmoPatientId\":\"C-8484\"}]}";
-        Assert.assertFalse(validRequestChecker.isValidPromotedRequest(requestJson));
+        Map<String, Object> promotedRequestJsonMap =
+                validRequestChecker.generatePromotedRequestValidationMap(requestJson);
+        Map<String, Object> requestStatus =
+                mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
+        Assert.assertFalse((Boolean) requestStatus.get("validationStatus"));
     }
 
     @Test
@@ -191,7 +264,11 @@ public class ValidRequestCheckerTest {
         String requestJson = "{\"requestId\":\"1456_T\",\"projectId\":\"1456\",\"isCmoRequest\":"
                 + "true,\"samples\":[{\"igoId\":\"1456_T_1\",\"cmoSampleIdFields\":"
                 + "{\"normalizedPatientId\":\"C-8484\"}}]}";
-        Assert.assertTrue(validRequestChecker.isValidPromotedRequest(requestJson));
+        Map<String, Object> promotedRequestJsonMap =
+                validRequestChecker.generatePromotedRequestValidationMap(requestJson);
+        Map<String, Object> requestStatus =
+                mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
+        Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
     }
 
     /**
@@ -219,6 +296,16 @@ public class ValidRequestCheckerTest {
                 .get("mockRequest1AllSamplesMissingFastQs");
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
-        Assert.assertNull(modifiedRequestJson);
+        Map<String, Object> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
+        Map<String, Object> requestStatus = mapper.convertValue(requestJsonMap.get("status"), Map.class);
+        Assert.assertFalse((Boolean) requestStatus.get("validationStatus"));
+
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        for (Object sample: sampleList) {
+            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
+            Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
+            Assert.assertFalse((Boolean) sampleStatus.get("validationStatus"));
+        }
     }
 }
