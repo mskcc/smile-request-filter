@@ -330,11 +330,11 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         for (Object lib : libraries) {
             Map<String, Object> libMap = mapper.convertValue(lib, Map.class);
             if (!libMap.containsKey("runs")) {
-                return Boolean.FALSE;
+                continue;
             }
             List<Object> runs = mapper.convertValue(libMap.get("runs"), List.class);
             if (runs.isEmpty()) {
-                return Boolean.FALSE;
+                continue;
             }
             for (Object run : runs) {
                 Map<String, Object> runMap = mapper.convertValue(run, Map.class);

@@ -208,6 +208,17 @@
               "flowCellLanes": [
                 5
               ],
+              "fastqs": []
+            },
+            {
+              "runMode": "HiSeq High Output",
+              "runId": "RUNID_0123",
+              "flowCellId": "X5KL2KKAY",
+              "readLength": "",
+              "runDate": "2018-06-05",
+              "flowCellLanes": [
+                5
+              ],
               "fastqs": [
                 "/FASTQ/Project_MOCKREQUEST1_B/Sample_01-XXXXXXXa_IGO_MOCKREQUEST1_B_4/01-XXXXXXXa_IGO_MOCKREQUEST1_B_4_S85_R1_001.fastq.gz",
                 "/FASTQ/Project_MOCKREQUEST1_B/Sample_01-XXXXXXXa_IGO_MOCKREQUEST1_B_4/01-XXXXXXXa_IGO_MOCKREQUEST1_B_4_S85_R2_001.fastq.gz"
