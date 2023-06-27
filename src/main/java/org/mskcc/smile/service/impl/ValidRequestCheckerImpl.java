@@ -63,6 +63,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         // validate each sample json and add to validSampleList if it passes check
         Boolean isCmoRequest = isCmo(requestJsonMap);
         List<Object> updatedSampleList = new ArrayList<>();
+        List<Object> invalidRequestSamplesStatuses = new ArrayList<>();
         int validSampleCount = 0;
         for (Object sample: sampleList) {
             Map<String, Object> sampleMap = mapper.convertValue(sample, Map.class);
@@ -72,24 +73,41 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             } else {
                 sampleStatus = generateNonCmoSampleValidationMap(sampleMap);
             }
+            sampleMap.put("status", sampleStatus);
+            Object sampleObj = mapper.convertValue(sampleMap, Object.class);
+
+            // get validation report and check status
+            Map<String, String> validationReport =
+                    mapper.convertValue(sampleStatus.get("validationReport"), Map.class);
             if ((Boolean) sampleStatus.get("validationStatus")) {
                 validSampleCount++;
+                updatedSampleList.add(sampleObj);
+            } else {
+                // do not add samples from cmo request if they are missing cmo patient ids
+                if (validationReport.containsKey("cmoPatientId")) {
+                    LOG.warn("Adding CMO sample with missing CMO patient ID to request-level "
+                            + "validation report (failed samples): " + mapper.writeValueAsString(sampleMap));
+                    invalidRequestSamplesStatuses.add(sampleObj);
+                } else {
+                    updatedSampleList.add(sampleObj);
+                }
             }
-            sampleMap.put("status", sampleStatus);
-            updatedSampleList.add(mapper.convertValue(sampleMap, Object.class));
-        }
-        // update request status 'validationStatus' based on results from sample validation
-        if ((Boolean) requestStatus.get("validationStatus")) {
-            List<String> requestValidationReport = (List<String>) requestStatus.get("validationReport");
-            if (validSampleCount == 0) {
-                requestValidationReport.add("all request samples failed validation");
-                requestStatus.replace("validationStatus", Boolean.FALSE);
-            } else if (validSampleCount < sampleList.length) {
-                requestValidationReport.add("some request samples failed validation");
-            }
-            requestStatus.replace("validationReport", requestValidationReport);
         }
         // update request json with request status and samples containing validation reports
+        if ((Boolean) requestStatus.get("validationStatus")) {
+            Map<String, Object> requestValidationReport = new HashMap<>();
+            // set validation status for request to false if none of the samples passed
+            if (validSampleCount == 0) {
+                requestStatus.replace("validationStatus", Boolean.FALSE);
+            }
+            // only replace contents of the validation report if the count of valid
+            // samples is less than the original sample list
+            if (validSampleCount < sampleList.length) {
+                requestValidationReport.put("samples",
+                        mapper.convertValue(invalidRequestSamplesStatuses, Object.class));
+                requestStatus.replace("validationReport", requestValidationReport);
+            }
+        }
         requestJsonMap.put("status", requestStatus);
         requestJsonMap.replace("samples", updatedSampleList.toArray(new Object[0]));
         return mapper.writeValueAsString(requestJsonMap);
@@ -124,8 +142,10 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         }
         if (validPromotedSampleCount == 0) {
             requestStatus.put("validationStatus", Boolean.FALSE);
-            List<String> requestValidationReport = (List<String>) requestStatus.get("validationReport");
-            requestValidationReport.add("all samples in promoted request failed validation");
+            Map<String, Object> requestValidationReport =
+                    (Map<String, Object>) requestStatus.get("validationReport");
+            requestValidationReport.put("samples", "All samples in the promoted "
+                    + "IGO request JSON failed validation.");
             requestStatus.replace("validationReport", requestValidationReport);
         }
         requestJsonMap.put("status", requestStatus);
@@ -169,8 +189,9 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     public Map<String, Object> generateRequestStatusValidationMap(String requestJson)
             throws IOException {
         Map<String, Object> validationMap = new HashMap<>();
-        List<String> validationReport = new ArrayList<>();
+        Map<String, Object> validationReport = new HashMap<>();
         if (StringUtils.isAllBlank(requestJson)) {
+            validationReport.put("requestJson", "Request JSON received is empty");
             validationMap.put("validationStatus", Boolean.FALSE);
             validationMap.put("validationReport", validationReport);
             return validationMap;
@@ -186,7 +207,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             LOG.warn("CMO request failed sanity checking - missing requestId...");
             requestStatusLogger.logRequestStatus(requestJson,
                     RequestStatusLogger.StatusType.REQUEST_MISSING_REQUEST_ID);
-            validationReport.add("requestId or igoRequestId missing from metadata");
+            validationReport.put("requestId", "IGO Request ID is missing from the request JSON received.");
             validationStatus = Boolean.FALSE;
         }
 
@@ -196,13 +217,15 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                     + getRequestId(requestJsonMap));
             requestStatusLogger.logRequestStatus(requestJson,
                     RequestStatusLogger.StatusType.CMO_REQUEST_FILTER_SKIPPED_REQUEST);
-            validationReport.add("smile cmo request filter enabled but isCmoRequest = false");
+            validationReport.put("isCmo", "SMILE CMO request filter is enabled and request JSON received has"
+                    + " 'cmoRequest': false. This value must be set to true for import into SMILE.");
             validationStatus = Boolean.FALSE;
         }
 
         // determine whether request json has samples
         if (!requestHasSamples(requestJson)) {
-            validationReport.add("request is missing 'samples' in json or 'samples' is an empty list");
+            validationReport.put("samples", "Request JSON is missing 'samples' or "
+                    + "'samples' is an empty list.");
             validationStatus = Boolean.FALSE;
         }
 
@@ -391,9 +414,14 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         return (!isBlank(requestId));
     }
 
-    private Boolean hasIgoId(Map<String, Object> sampleMap) {
+    private String getPrimaryOrIgoId(Map<String, Object> sampleMap) {
         Object igoIdOrPrimaryId = ObjectUtils.firstNonNull(sampleMap.get("igoId"),
                sampleMap.get("primaryId"));
+        return isBlank(String.valueOf(igoIdOrPrimaryId)) ? null : String.valueOf(igoIdOrPrimaryId);
+    }
+
+    private Boolean hasIgoId(Map<String, Object> sampleMap) {
+        Object igoIdOrPrimaryId = getPrimaryOrIgoId(sampleMap);
         if (igoIdOrPrimaryId == null) {
             return Boolean.FALSE;
         }
