@@ -45,7 +45,6 @@ public class ValidRequestCheckerTest {
                 .getFilteredValidRequestJson(requestJson.getJsonString());
         Map<String, Object> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
         Map<String, Object> requestStatus = mapper.convertValue(requestJsonMap.get("status"), Map.class);
-        System.out.println("\n\n\n" + modifiedRequestJson + "\n\n\n");
         Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
 
         Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
@@ -307,5 +306,33 @@ public class ValidRequestCheckerTest {
             Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
             Assert.assertFalse((Boolean) sampleStatus.get("validationStatus"));
         }
+    }
+
+    /**
+     * Tests that mocked request has no valid samples and that the samples are instead in the request-level
+     * validation report.
+     * @throws Exception
+     */
+    @Test
+    public void testRequestSamplesMissingPatientIds() throws Exception {
+        MockJsonTestData requestJson = mockedRequestJsonDataMap.get("mockRequest7SamplesMissingPids");
+        String modifiedRequestJson =
+                validRequestChecker.getFilteredValidRequestJson(requestJson.getJsonString());
+        Map<String, Object> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
+        // assert sample list is empty in the modified request json
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        Assert.assertTrue(sampleList.length == 1);
+
+        // assert request validation status is true since there's at least one valid sample
+        Map<String, Object> requestStatus = mapper.convertValue(requestJsonMap.get("status"), Map.class);
+        Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
+
+        // assert request validation report has 'samples' and length is 4
+        Map<String, Object> validationReport =
+                mapper.convertValue(requestStatus.get("validationReport"), Map.class);
+        Object[] failedSamplesList = mapper.convertValue(validationReport.get("samples"),
+                Object[].class);
+        Assert.assertTrue(failedSamplesList.length == 3);
     }
 }
