@@ -338,7 +338,6 @@ public class ValidRequestCheckerTest {
 
     /**
      * Test for handling request with 2 out of 4 samples having igoComplete set to false.
-     * This would still pass the sanity check but the request will be logged with warnings.
      *
      */
     @Test
