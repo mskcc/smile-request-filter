@@ -2,7 +2,7 @@ package org.mskcc.smile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mskcc.smile.config.MockDataConfig;
@@ -334,5 +334,31 @@ public class ValidRequestCheckerTest {
         Object[] failedSamplesList = mapper.convertValue(validationReport.get("samples"),
                 Object[].class);
         Assert.assertTrue(failedSamplesList.length == 3);
+    }
+
+    /**
+     * Test for handling request with 2 out of 4 samples having igoComplete set to false.
+     * This would still pass the sanity check but the request will be logged with warnings.
+     *
+     */
+    @Test
+    public void testRequestJsonWithSamplesHavingFalseIgoComplete() throws Exception {
+        MockJsonTestData requestJson = mockedRequestJsonDataMap
+                .get("mockRequest8FalseIgoComplete");
+
+        String modifiedRequestJson = validRequestChecker
+                .getFilteredValidRequestJson(requestJson.getJsonString());
+        Assert.assertNotNull(modifiedRequestJson);
+
+        Map<String, Object> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        for (Object sample: sampleList) {
+            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
+            Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
+            if (sampleMap.get("igoComplete") == Boolean.FALSE.toString()) {
+                Assert.assertFalse((Boolean) sampleStatus.get("validationStatus"));
+            }
+        }
     }
 }
