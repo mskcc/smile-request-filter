@@ -281,7 +281,6 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                 validationReport.put("recipe", "missing");
             }
         }
-
         if (!hasCmoPatientId(sampleMap)) {
             validationStatus = Boolean.FALSE;
             validationReport.put("cmoPatientId", "missing");
@@ -302,6 +301,10 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (!hasFastQs(sampleMap)) {
             validationStatus = Boolean.FALSE;
             validationReport.put("fastQs", "missing");
+        }
+        if (!isIgoComplete(sampleMap)) {
+            validationStatus = Boolean.FALSE;
+            validationReport.put("igoComplete", "false");
         }
         validationMap.put("validationStatus", validationStatus);
         validationMap.put("validationReport", validationReport);
@@ -484,6 +487,10 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             }
         }
         return Boolean.FALSE;
+    }
+
+    private Boolean isIgoComplete(Map<String, Object> sampleMap) {
+        return (Boolean) sampleMap.get("igoComplete");
     }
 
     /**
