@@ -353,9 +353,9 @@ public class ValidRequestCheckerTest {
         Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
                 Object[].class);
         for (Object sample: sampleList) {
-            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
+            Map<String, Object> sampleMap = mapper.convertValue(sample, Map.class);
             Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
-            if (sampleMap.get("igoComplete") == Boolean.FALSE.toString()) {
+            if (!Boolean.valueOf(sampleMap.get("igoComplete").toString())) {
                 Assert.assertFalse((Boolean) sampleStatus.get("validationStatus"));
             }
         }
