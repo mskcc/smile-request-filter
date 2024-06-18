@@ -30,19 +30,7 @@ Include specific tasks in the order they need to be done in. Include links to sp
 
 Please follow these checklists to help prevent any unexpected issues from being introduced by the changes in this pull request. If an item does not apply then indicate so by surrounding the line item with `~~` to strikethrough the text. See [basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) for more information.
 
-### I. Data checklist
-Please follow these checks if any changes were made to any classes in the web, service, or persistence layers.
-
-**Data checks:**
-Updates were made to the mocked incoming request data and/or mocked published request data:
-
-- [ ] [smile-server test data](https://github.com/mskcc/smile-server/tree/master/service/src/test/resources/data)
-- [ ] [smile-commons test data](https://github.com/mskcc/smile-commons/tree/master/src/test/resources/data)
-- [ ] [smile-label-generator test data](https://github.com/mskcc/smile-label-generator/tree/master/src/test/resources/data)
-- [ ] [smile-request-filter test data](https://github.com/mskcc/smile-request-filter/tree/master/src/test/resources/data)
-
-
-### II. Message handlers checklist:
+### I. Message handlers checklist:
 - [ ] Changes introduced affect the workflow of incoming messages.
 - [ ] Messages are following the expected workflow when published to the topic(s) changed or introduced in this pull request.
 - [ ] Unit tests were added or updated to ensure messages are handled as expected.
@@ -60,10 +48,10 @@ Please describe how the workflow and messaging was tested/simulated:
 
 Other: [insert details on how messages were published or simulated for testing]
 
-### III. Configuration and/or permissions checklist:
+### II. Configuration and/or permissions checklist:
 - [ ] New topics were introduced.
-- [ ] The topics and appropriate permissions were updated in [cmo-metadb-configuration](https://github.mskcc.org/cmo/cmo-metadb-configuration).
-- [ ] If applicable, a new account was set up and the account credentials and keys are checked into [cmo-metadb-configuration](https://github.mskcc.org/cmo/cmo-metadb-configuration).
+- [ ] The topics and appropriate permissions were updated in [smile-configuration](https://github.mskcc.org/cmo/smile-configuration).
+- [ ] If applicable, a new account was set up and the account credentials and keys are checked into [smile-configuration](https://github.mskcc.org/cmo/smile-configuration).
 - [ ] Account credentials and keys were shared with the appropriate parties.
 
 ---
