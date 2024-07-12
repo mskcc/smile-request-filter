@@ -2,6 +2,7 @@ package org.mskcc.smile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -142,6 +143,10 @@ public class ValidRequestCheckerTest {
             Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
             Assert.assertFalse((Boolean) sampleStatus.get("validationStatus"));
         }
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson.getJsonString(),
+                        modifiedRequestJson);
+        Assert.assertFalse(StringUtils.isBlank(ddogValidationReport));
     }
 
     /**
@@ -155,6 +160,10 @@ public class ValidRequestCheckerTest {
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
         Assert.assertNotSame(modifiedRequestJson, requestJson.getJsonString());
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson.getJsonString(),
+                        modifiedRequestJson);
+        Assert.assertFalse(StringUtils.isBlank(ddogValidationReport));
     }
 
     /**
@@ -168,6 +177,10 @@ public class ValidRequestCheckerTest {
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
         Assert.assertNotNull(modifiedRequestJson);
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson.getJsonString(),
+                        modifiedRequestJson);
+        Assert.assertTrue(StringUtils.isBlank(ddogValidationReport));
     }
 
     /**
@@ -181,6 +194,10 @@ public class ValidRequestCheckerTest {
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
         Assert.assertNotNull(modifiedRequestJson);
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson.getJsonString(),
+                        modifiedRequestJson);
+        Assert.assertTrue(StringUtils.isBlank(ddogValidationReport));
     }
 
     @Test
@@ -212,6 +229,10 @@ public class ValidRequestCheckerTest {
         Map<String, Object> requestStatus =
                 mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
         Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson,
+                        mapper.writeValueAsString(promotedRequestJsonMap));
+        Assert.assertTrue(StringUtils.isBlank(ddogValidationReport));
     }
 
     @Test
@@ -223,6 +244,10 @@ public class ValidRequestCheckerTest {
         Map<String, Object> requestStatus =
                 mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
         Assert.assertFalse((Boolean) requestStatus.get("validationStatus"));
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson,
+                        mapper.writeValueAsString(promotedRequestJsonMap));
+        Assert.assertFalse(StringUtils.isBlank(ddogValidationReport));
     }
 
     @Test
@@ -234,6 +259,10 @@ public class ValidRequestCheckerTest {
         Map<String, Object> requestStatus =
                 mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
         Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson,
+                        mapper.writeValueAsString(promotedRequestJsonMap));
+        Assert.assertTrue(StringUtils.isBlank(ddogValidationReport));
     }
 
     @Test
@@ -245,6 +274,10 @@ public class ValidRequestCheckerTest {
         Map<String, Object> requestStatus =
                 mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
         Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson,
+                        mapper.writeValueAsString(promotedRequestJsonMap));
+        Assert.assertTrue(StringUtils.isBlank(ddogValidationReport));
     }
 
     @Test
@@ -256,6 +289,10 @@ public class ValidRequestCheckerTest {
         Map<String, Object> requestStatus =
                 mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
         Assert.assertFalse((Boolean) requestStatus.get("validationStatus"));
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson,
+                        mapper.writeValueAsString(promotedRequestJsonMap));
+        Assert.assertFalse(StringUtils.isBlank(ddogValidationReport));
     }
 
     @Test
@@ -268,6 +305,10 @@ public class ValidRequestCheckerTest {
         Map<String, Object> requestStatus =
                 mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
         Assert.assertTrue((Boolean) requestStatus.get("validationStatus"));
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson,
+                        mapper.writeValueAsString(promotedRequestJsonMap));
+        Assert.assertTrue(StringUtils.isBlank(ddogValidationReport));
     }
 
     /**
@@ -282,6 +323,10 @@ public class ValidRequestCheckerTest {
         String modifiedRequestJson = validRequestChecker
                 .getFilteredValidRequestJson(requestJson.getJsonString());
         Assert.assertNotNull(modifiedRequestJson);
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson.getJsonString(),
+                        modifiedRequestJson);
+        Assert.assertFalse(StringUtils.isBlank(ddogValidationReport));
     }
 
     /**
@@ -306,6 +351,10 @@ public class ValidRequestCheckerTest {
             Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
             Assert.assertFalse((Boolean) sampleStatus.get("validationStatus"));
         }
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson.getJsonString(),
+                        modifiedRequestJson);
+        Assert.assertFalse(StringUtils.isBlank(ddogValidationReport));
     }
 
     /**
@@ -334,6 +383,10 @@ public class ValidRequestCheckerTest {
         Object[] failedSamplesList = mapper.convertValue(validationReport.get("samples"),
                 Object[].class);
         Assert.assertTrue(failedSamplesList.length == 3);
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson.getJsonString(),
+                        modifiedRequestJson);
+        Assert.assertFalse(StringUtils.isBlank(ddogValidationReport));
     }
 
     /**
@@ -359,5 +412,9 @@ public class ValidRequestCheckerTest {
                 Assert.assertFalse((Boolean) sampleStatus.get("validationStatus"));
             }
         }
+        String ddogValidationReport =
+                validRequestChecker.generateValidationReport(requestJson.getJsonString(),
+                        modifiedRequestJson);
+        Assert.assertFalse(StringUtils.isBlank(ddogValidationReport));
     }
 }
