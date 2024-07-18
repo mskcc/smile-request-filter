@@ -49,6 +49,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * - If the number of valid samples is less than the total number of samples that came
      *   with the request then the request is still considered valid but the request is
      *   logged by the request status logger to keep note of the invalid samples.
+     * @param requestJson
+     * @return String
      * @throws IOException
      */
     @Override
@@ -619,5 +621,69 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
     private Boolean isBlank(String value) {
         return (Strings.isBlank(value) || value.equals("null"));
+    }
+
+    @Override
+    public String generateValidationReport(String originalJson, String filteredJson)
+            throws JsonProcessingException {
+        StringBuilder builder = new StringBuilder();
+        String requestId = getRequestId(originalJson);
+        Map<String, Object> filteredJsonMap = mapper.readValue(filteredJson, Map.class);
+        // keeps track if there's anything to report or not. if still true after all checks
+        // then return null
+        Boolean allValid = Boolean.TRUE;
+
+        // if request-level status is missing from the filtered json then
+        // a critical error likely occurred, in which case the original json
+        // would be more helpful to have as a reference when debugging the error
+        if (!filteredJsonMap.containsKey("status")) {
+            allValid = Boolean.FALSE;
+            builder.append("Request JSON missing validation report ('status') post-validation:");
+            builder.append("\nOriginal JSON contents:\n")
+                    .append(originalJson).append("\nFiltered JSON contents:\n")
+                    .append(filteredJson);
+        } else {
+            Map<String, Object> statusMap = (Map<String, Object>) filteredJsonMap.get("status");
+            Map<String, Object> validationReport =
+                    mapper.convertValue(statusMap.get("validationReport"), Map.class);
+
+            // if request validation report is not empty then log for ddog
+            if (!validationReport.isEmpty()) {
+                allValid = Boolean.FALSE;
+                builder.append("Request-level status and validation report for request '")
+                        .append(requestId)
+                        .append("': ")
+                        .append(mapper.writeValueAsString(statusMap));
+            }
+            // check validation status for each sample individually as well and
+            // add contents to report for ddog
+            Object[] sampleList = mapper.convertValue(filteredJsonMap.get("samples"),
+                Object[].class);
+            for (Object s : sampleList) {
+                Map<String, Object> sampleMap = mapper.convertValue(s, Map.class);
+                Map<String, Object> sampleStatusMap = mapper.convertValue(sampleMap.get("status"), Map.class);
+                Map<String, String> sampleValidationReport =
+                        mapper.convertValue(sampleStatusMap.get("validationReport"), Map.class);
+                try {
+                    String sampleId = ObjectUtils.firstNonNull(
+                            sampleMap.get("igoId"), sampleMap.get("primaryId")).toString();
+                    if (!sampleValidationReport.isEmpty()) {
+                        allValid = Boolean.FALSE;
+                        builder.append("\nValidation report for sample '")
+                                .append(sampleId)
+                                .append("': ")
+                                .append(mapper.writeValueAsString(sampleStatusMap));
+                    }
+                } catch (NullPointerException e) {
+                    builder.append("\nNo known identifiers in current sample data: ")
+                            .append(mapper.writeValueAsString(sampleMap))
+                            .append(", Validation report for unknown sample: ")
+                            .append(mapper.writeValueAsString(sampleStatusMap));
+                }
+            }
+        }
+        // if allValid is still true then there wasn't anything to report at the request
+        // or sample level.. return null
+        return allValid ? null : builder.toString();
     }
 }

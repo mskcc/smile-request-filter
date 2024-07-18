@@ -21,4 +21,5 @@ public interface ValidRequestChecker {
             JsonProcessingException, IOException;
     Map<String, Object> generatePromotedSampleValidationMap(Map<String, Object> sampleMap)
             throws JsonMappingException, JsonProcessingException;
+    String generateValidationReport(String originalJson, String filteredJson) throws JsonProcessingException;
 }
