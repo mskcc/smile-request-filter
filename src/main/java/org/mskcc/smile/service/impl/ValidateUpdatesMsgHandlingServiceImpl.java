@@ -17,7 +17,6 @@ import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.smile.service.ValidRequestChecker;
 import org.mskcc.smile.service.ValidateUpdatesMessageHandlingService;
-import org.mskcc.smile.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,9 +43,6 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
 
     @Autowired
     private ValidRequestChecker validRequestChecker;
-
-    @Autowired
-    private RequestStatusLogger requestStatusLogger;
 
     private static boolean initialized = false;
     private static Gateway messagingGateway;
@@ -123,8 +119,6 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                         } else {
                             LOG.error("Sanity check failed on Request updates: "
                                     + validRequestChecker.getRequestId(requestJson));
-                            requestStatusLogger.logRequestStatus(requestJson,
-                                    RequestStatusLogger.StatusType.REQUEST_UPDATE_FAILED_SANITY_CHECK);
                         }
                     }
                     if (interrupted && requestUpdateFilterQueue.isEmpty()) {
@@ -158,9 +152,8 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                         Map<String, Object> sampleMap = mapper.readValue(sampleJson, Map.class);
                         Boolean hasRequestId = validRequestChecker.hasRequestId(sampleJson);
                         if (!hasRequestId) {
-                            LOG.warn("Cannot extract request ID information from sample update message");
-                            requestStatusLogger.logRequestStatus(sampleJson,
-                                    RequestStatusLogger.StatusType.SAMPLE_UPDATE_FAILED_SANITY_CHECK);
+                            LOG.warn("Cannot extract request ID information from sample update message: "
+                                    + sampleJson);
                             continue;
                         }
 
@@ -175,9 +168,7 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                                 messagingGateway.publish(CMO_LABEL_UPDATE_TOPIC,
                                         sampleJson);
                             } else {
-                                LOG.error("Sanity check failed on CMO sample updates ");
-                                requestStatusLogger.logRequestStatus(sampleJson,
-                                        RequestStatusLogger.StatusType.SAMPLE_UPDATE_FAILED_SANITY_CHECK);
+                                LOG.error("Sanity check failed on CMO sample updates: " + sampleJson);
                             }
                         } else {
                             Map<String, Object> sampleStatus =
@@ -190,9 +181,8 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                                         SERVER_SAMPLE_UPDATE_TOPIC,
                                         sampleJson);
                             } else {
-                                LOG.error("Sanity check failed on non-CMO sample update received.");
-                                requestStatusLogger.logRequestStatus(sampleJson,
-                                        RequestStatusLogger.StatusType.SAMPLE_UPDATE_FAILED_SANITY_CHECK);
+                                LOG.error("Sanity check failed on non-CMO sample update received: "
+                                        + sampleJson);
                             }
                         }
                     }

@@ -14,7 +14,6 @@ import org.mockito.Mockito;
 import org.mskcc.smile.commons.FileUtil;
 import org.mskcc.smile.model.MockJsonTestData;
 import org.mskcc.smile.service.impl.ValidRequestCheckerImpl;
-import org.mskcc.smile.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -48,17 +47,12 @@ public class MockDataConfig {
         return new ValidRequestCheckerImpl();
     }
 
-    @Bean
-    public RequestStatusLogger requestStatusLogger() {
-        return Mockito.mock(RequestStatusLogger.class);
-    }
-
     private Map<String, MockJsonTestData> mockedRequestJsonDataMap;
 
     /**
      * Generates the mocked request json data map;
      * @return Map
-     * @throws IOException 
+     * @throws IOException
      */
     @Bean(name = "mockedRequestJsonDataMap")
     public Map<String, MockJsonTestData> mockedRequestJsonDataMap() throws IOException {

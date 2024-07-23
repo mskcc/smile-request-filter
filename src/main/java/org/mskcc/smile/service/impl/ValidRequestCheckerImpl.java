@@ -19,16 +19,12 @@ import org.mskcc.smile.commons.enums.SampleOrigin;
 import org.mskcc.smile.commons.enums.SampleType;
 import org.mskcc.smile.commons.enums.SpecimenType;
 import org.mskcc.smile.service.ValidRequestChecker;
-import org.mskcc.smile.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ValidRequestCheckerImpl implements ValidRequestChecker {
-
-    @Autowired
-    private RequestStatusLogger requestStatusLogger;
 
     @Value("${igo.cmo_request_filter:false}")
     private Boolean igoCmoRequestFilter;
@@ -136,11 +132,11 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             }
         }
         if (validPromotedSampleCount < sampleList.length) {
+            String requestId = getRequestId(requestJson);
             LOG.warn("One or more sample(s) is missing one or a combination of the following: igoId or "
                     + "primaryId, cmoPatientId or cmoSampleIdFields --> normalizedPatientId - this "
-                    + "information must be added for promoted requests & samples");
-            requestStatusLogger.logRequestStatus(requestJson,
-                RequestStatusLogger.StatusType.PROMOTED_SAMPLES_MISSING_IDS);
+                    + "information must be added for promoted requests & samples: requestId = "
+                    + requestId + ", " + requestJson);
         }
         if (validPromotedSampleCount == 0) {
             requestStatus.put("validationStatus", Boolean.FALSE);
@@ -206,9 +202,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
         // if requestId is blank then nothing to do, return null
         if (!hasRequestId) {
-            LOG.warn("CMO request failed sanity checking - missing requestId...");
-            requestStatusLogger.logRequestStatus(requestJson,
-                    RequestStatusLogger.StatusType.REQUEST_MISSING_REQUEST_ID);
+            LOG.warn("CMO request failed sanity checking - missing requestId. " + requestJson);
             validationReport.put("requestId", "IGO Request ID is missing from the request JSON received.");
             validationStatus = Boolean.FALSE;
         }
@@ -216,9 +210,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         // if cmo filter is enabled then skip request if it is non-cmo
         if (igoCmoRequestFilter && !isCmoRequest) {
             LOG.warn("CMO request filter enabled - skipping non-CMO request: "
-                    + getRequestId(requestJsonMap));
-            requestStatusLogger.logRequestStatus(requestJson,
-                    RequestStatusLogger.StatusType.CMO_REQUEST_FILTER_SKIPPED_REQUEST);
+                    + getRequestId(requestJsonMap) + ", " + requestJson);
             validationReport.put("isCmo", "SMILE CMO request filter is enabled and request JSON received has"
                     + " 'cmoRequest': false. This value must be set to true for import into SMILE.");
             validationStatus = Boolean.FALSE;
@@ -599,11 +591,11 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     private Boolean requestHasSamples(String requestJson) throws JsonProcessingException, IOException {
+        String requestId = getRequestId(requestJson);
         Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
         if (!requestJsonMap.containsKey("samples")) {
-            LOG.warn("Skipping request that is missing 'samples' in JSON");
-            requestStatusLogger.logRequestStatus(requestJson,
-                    RequestStatusLogger.StatusType.REQUEST_WITH_MISSING_SAMPLES);
+            LOG.warn("Skipping request that is missing 'samples' in JSON for request ID: "
+                    + requestId + ", " + requestJson);
             return Boolean.FALSE;
         }
 
@@ -611,9 +603,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
                 Object[].class);
         if (sampleList.length == 0) {
-            LOG.warn("Skipping request without any sample data in 'samples' JSON field");
-            requestStatusLogger.logRequestStatus(requestJson,
-                    RequestStatusLogger.StatusType.REQUEST_WITH_MISSING_SAMPLES);
+            LOG.warn("Skipping request without any sample data in 'samples' JSON field: "
+                    + requestId + ", " + requestJson);
             return Boolean.FALSE;
         }
         return Boolean.TRUE;
