@@ -18,7 +18,6 @@ import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.smile.service.PromotedRequestMsgHandlingService;
 import org.mskcc.smile.service.ValidRequestChecker;
-import org.mskcc.smile.service.util.RequestStatusLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,9 +43,6 @@ public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsg
 
     @Autowired
     private ValidRequestChecker validRequestChecker;
-
-    @Autowired
-    private RequestStatusLogger requestStatusLogger;
 
     private final ObjectMapper mapper = new ObjectMapper();
     private static boolean initialized = false;
@@ -162,12 +158,6 @@ public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsg
                 } catch (Exception e) {
                     LOG.error("Exception during processing of request on topic: "
                             + VALIDATE_PROMOTED_REQUEST_TOPIC, e);
-                    try {
-                        requestStatusLogger.logRequestStatus(message.toString(),
-                                RequestStatusLogger.StatusType.REQUEST_PARSING_ERROR);
-                    } catch (IOException ex) {
-                        LOG.error("Error during attempt to write request status to logger file", ex);
-                    }
                 }
             }
         });
