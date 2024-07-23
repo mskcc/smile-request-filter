@@ -106,7 +106,9 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                         // data dog log message
                         String ddogLogMessage = validRequestChecker.generateValidationReport(
                                 requestJson, filteredRequestJson);
-                        LOG.info(ddogLogMessage);
+                        if (ddogLogMessage != null) {
+                            LOG.info(ddogLogMessage);
+                        }
                     }
                     if (interrupted && requestFilterQueue.isEmpty()) {
                         break;
