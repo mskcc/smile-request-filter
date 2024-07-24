@@ -629,9 +629,9 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         // would be more helpful to have as a reference when debugging the error
         if (!filteredJsonMap.containsKey("status")) {
             allValid = Boolean.FALSE;
-            builder.append("Request JSON missing validation report ('status') post-validation:");
-            builder.append("\nOriginal JSON contents:\n")
-                    .append(originalJson).append("\nFiltered JSON contents:\n")
+            builder.append("[request-filter] Request JSON missing validation report ('status') ");
+            builder.append(" post-validation: Original JSON contents: ")
+                    .append(originalJson).append("Filtered JSON contents: ")
                     .append(filteredJson);
         } else {
             Map<String, Object> statusMap = (Map<String, Object>) filteredJsonMap.get("status");
@@ -641,7 +641,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             // if request validation report is not empty then log for ddog
             if (!validationReport.isEmpty()) {
                 allValid = Boolean.FALSE;
-                builder.append("Request-level status and validation report for request '")
+                builder.append("[request-filter] Request-level status and validation report for request '")
                         .append(requestId)
                         .append("': ")
                         .append(mapper.writeValueAsString(statusMap));
@@ -652,7 +652,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                 Object[].class);
             for (Object s : sampleList) {
                 Map<String, Object> sampleMap = mapper.convertValue(s, Map.class);
-                Map<String, Object> sampleStatusMap = mapper.convertValue(sampleMap.get("status"), Map.class);
+                Map<String, Object> sampleStatusMap
+                        = mapper.convertValue(sampleMap.get("status"), Map.class);
                 Map<String, String> sampleValidationReport =
                         mapper.convertValue(sampleStatusMap.get("validationReport"), Map.class);
                 try {
@@ -660,13 +661,13 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                             sampleMap.get("igoId"), sampleMap.get("primaryId")).toString();
                     if (!sampleValidationReport.isEmpty()) {
                         allValid = Boolean.FALSE;
-                        builder.append("\nValidation report for sample '")
+                        builder.append("\n[request-filter] Validation report for sample '")
                                 .append(sampleId)
                                 .append("': ")
                                 .append(mapper.writeValueAsString(sampleStatusMap));
                     }
                 } catch (NullPointerException e) {
-                    builder.append("\nNo known identifiers in current sample data: ")
+                    builder.append("\n[request-filter] No known identifiers in current sample data: ")
                             .append(mapper.writeValueAsString(sampleMap))
                             .append(", Validation report for unknown sample: ")
                             .append(mapper.writeValueAsString(sampleStatusMap));
