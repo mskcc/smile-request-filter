@@ -23,22 +23,22 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMessageHandlingService {
-    @Value("${igo.validate_request_update_topic}")
+    @Value("${igo.validate_request_update_topic:}")
     private String VALIDATOR_REQUEST_UPDATE_TOPIC;
 
-    @Value("${igo.validate_sample_update_topic}")
+    @Value("${igo.validate_sample_update_topic:}")
     private String VALIDATOR_SAMPLE_UPDATE_TOPIC;
 
-    @Value("${igo.cmo_label_update_topic}")
+    @Value("${igo.cmo_label_update_topic:}")
     private String CMO_LABEL_UPDATE_TOPIC;
 
-    @Value("${smile.request_update_topic}")
+    @Value("${smile.request_update_topic:}")
     private String SERVER_REQUEST_UPDATE_TOPIC;
 
-    @Value("${smile.sample_update_topic}")
+    @Value("${smile.sample_update_topic:}")
     private String SERVER_SAMPLE_UPDATE_TOPIC;
 
-    @Value("${num.new_request_handler_threads}")
+    @Value("${num.new_request_handler_threads:1}")
     private int NUM_NEW_REQUEST_HANDLERS;
 
     @Autowired

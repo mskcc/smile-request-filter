@@ -2,7 +2,6 @@ package org.mskcc.smile.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -28,16 +27,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageHandlingService {
 
-    @Value("${igo.request_filter_topic}")
+    @Value("${igo.request_filter_topic:}")
     private String IGO_REQUEST_FILTER_TOPIC;
 
-    @Value("${igo.cmo_label_generator_topic}")
+    @Value("${igo.cmo_label_generator_topic:}")
     private String CMO_LABEL_GENERATOR_TOPIC;
 
-    @Value("${igo.new_request_topic}")
+    @Value("${igo.new_request_topic:}")
     private String IGO_NEW_REQUEST_TOPIC;
 
-    @Value("${num.new_request_handler_threads}")
+    @Value("${num.new_request_handler_threads:1}")
     private int NUM_NEW_REQUEST_HANDLERS;
 
     @Autowired
