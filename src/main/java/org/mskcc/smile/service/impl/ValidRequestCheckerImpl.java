@@ -13,13 +13,11 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.logging.log4j.util.Strings;
 import org.mskcc.smile.commons.enums.CmoSampleClass;
 import org.mskcc.smile.commons.enums.SampleOrigin;
 import org.mskcc.smile.commons.enums.SampleType;
 import org.mskcc.smile.commons.enums.SpecimenType;
 import org.mskcc.smile.service.ValidRequestChecker;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -611,7 +609,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     private Boolean isBlank(String value) {
-        return (Strings.isBlank(value) || value.equals("null"));
+        return (StringUtils.isBlank(value) || value.equals("null"));
     }
 
     @Override
