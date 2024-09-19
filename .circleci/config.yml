@@ -1,11 +1,11 @@
 defaults: &defaults
     docker:
-        - image: cimg/openjdk:8.0.275
+        - image: cimg/openjdk:21.0
 
 version: 2.1
 
 orbs:
-  maven: circleci/maven@1.0.3
+  maven: circleci/maven@1.4.1
 
 jobs:
   run_checkstyle:
@@ -25,7 +25,7 @@ jobs:
               git checkout ${SMILE_COMMONS_VERSION}
       - run:
           name: "Build project..."
-          command: mvn clean install
+          command: mvn clean install -U
       - run:
           name: "Run checkstyle plugin..."
           command: mvn checkstyle:checkstyle
