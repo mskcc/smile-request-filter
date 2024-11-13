@@ -1,5 +1,6 @@
 package org.mskcc.smile.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
 import java.nio.charset.StandardCharsets;
@@ -108,18 +109,21 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                 try {
                     String requestJson = requestUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (requestJson != null) {
+                        String requestId = validRequestChecker.getRequestId(requestJson);
                         Map<String, Object> requestStatus =
                                 validRequestChecker.generateRequestStatusValidationMap(requestJson);
+                        // attach updated request status to the request metadata
+                        String requestWithStatus = updateJsonWithValidationMap(requestJson, requestStatus);
+
                         Boolean passCheck = (Boolean) requestStatus.get("validationStatus");
                         if (passCheck) {
-                            LOG.info("Sanity check passed, publishing to: " + SERVER_REQUEST_UPDATE_TOPIC);
-                            messagingGateway.publish(
-                                    SERVER_REQUEST_UPDATE_TOPIC,
-                                    requestJson);
+                            LOG.info("Sanity check passed for request updates: " + requestId);
                         } else {
-                            LOG.error("Sanity check failed on Request updates: "
-                                    + validRequestChecker.getRequestId(requestJson));
+                            LOG.error("Sanity check failed on request updates: " + requestWithStatus);
                         }
+                        messagingGateway.publish(
+                                SERVER_REQUEST_UPDATE_TOPIC,
+                                requestWithStatus);
                     }
                     if (interrupted && requestUpdateFilterQueue.isEmpty()) {
                         break;
@@ -161,29 +165,35 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                         if (isCmoSample) {
                             Map<String, Object> sampleStatus =
                                     validRequestChecker.generateCmoSampleValidationMap(sampleMap);
+                            // attach sample status to sample json to publish
+                            String sampleWithStatus = updateJsonWithValidationMap(sampleJson, sampleStatus);
+
                             Boolean passCheck = (Boolean) sampleStatus.get("validationStatus");
                             if (passCheck) {
                                 LOG.info("Sanity check passed, publishing CMO sample"
                                         + "update to: " + CMO_LABEL_UPDATE_TOPIC);
-                                messagingGateway.publish(CMO_LABEL_UPDATE_TOPIC,
-                                        sampleJson);
                             } else {
-                                LOG.error("Sanity check failed on CMO sample updates: " + sampleJson);
+                                LOG.error("Sanity check failed on CMO sample updates: " + sampleWithStatus);
                             }
+                            messagingGateway.publish(CMO_LABEL_UPDATE_TOPIC,
+                                        sampleWithStatus);
                         } else {
                             Map<String, Object> sampleStatus =
                                     validRequestChecker.generateNonCmoSampleValidationMap(sampleMap);
+                            // attach sample status to sample json to publish
+                            String sampleWithStatus = updateJsonWithValidationMap(sampleJson, sampleStatus);
+
                             Boolean passCheck = (Boolean) sampleStatus.get("validationStatus");
                             if (passCheck) {
                                 LOG.info("Sanity check passed, publishing non-CMO "
                                         + "sample update to: " + SERVER_SAMPLE_UPDATE_TOPIC);
-                                messagingGateway.publish(
-                                        SERVER_SAMPLE_UPDATE_TOPIC,
-                                        sampleJson);
                             } else {
                                 LOG.error("Sanity check failed on non-CMO sample update received: "
-                                        + sampleJson);
+                                        + sampleWithStatus);
                             }
+                            messagingGateway.publish(
+                                    SERVER_SAMPLE_UPDATE_TOPIC,
+                                    sampleWithStatus);
                         }
                     }
                     if (interrupted && sampleUpdateFilterQueue.isEmpty()) {
@@ -272,5 +282,20 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
         requestUpdateFilterHandlerShutdownLatch.await();
         sampleUpdateFilterHandlerShutdownLatch.await();
         shutdownInitiated = true;
+    }
+
+    /**
+     * Updates the input json with the validation map provided.
+     * The validation map contains the validation report and validation status.
+     * @param inputJson
+     * @param validationMap
+     * @return String
+     * @throws JsonProcessingException
+     */
+    private String updateJsonWithValidationMap(String inputJson, Map<String, Object> validationMap)
+            throws JsonProcessingException {
+        Map<String, Object> inputJsonMap = mapper.readValue(inputJson, Map.class);
+        inputJsonMap.put("status", validationMap);
+        return mapper.writeValueAsString(inputJsonMap);
     }
 }

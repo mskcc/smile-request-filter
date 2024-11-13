@@ -74,6 +74,9 @@ public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsg
                                 validRequestChecker.generatePromotedRequestValidationMap(requestJson);
                         Map<String, Object> requestStatus =
                                 mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
+                        // TODO: Promoted requests are still not supported. If in the future this changes,
+                        // and it is desired, then the promoted request json should be updated with the
+                        // request status map
                         if ((Boolean) requestStatus.get("validationStatus")) {
                             // if request is cmo then publish to CMO_PROMOTED_LABEL_TOPIC
                             // otherwise publish to IGO_PROMOTED_REQUEST_TOPIC
