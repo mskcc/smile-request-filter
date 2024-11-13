@@ -78,25 +78,27 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                             if (passCheck) {
                                 LOG.info("Request'" + requestId + "' passed sanity check, publishing to: "
                                         + CMO_LABEL_GENERATOR_TOPIC);
-                                // even if sanity check passed there might still be information worth
-                                // reporting from the sample-level validation reports
-                                messagingGateway.publish(requestId,
+                            } else {
+                                LOG.error("Sanity check failed on request: " + filteredRequestJson);
+                            }
+                            // even if sanity check failed there might still be information worth
+                            // reporting from the sample-level validation reports
+                            messagingGateway.publish(requestId,
                                     CMO_LABEL_GENERATOR_TOPIC,
                                     filteredRequestJson);
-                            } else {
-                                LOG.error("Sanity check failed on request: " + requestId);
-                            }
                         } else {
                             LOG.info("Handling non-CMO request...");
                             if (passCheck) {
                                 LOG.info("Request '" + requestId + "' passed sanity check, publishing to: "
                                         + IGO_NEW_REQUEST_TOPIC);
-                                messagingGateway.publish(requestId,
-                                        IGO_NEW_REQUEST_TOPIC,
-                                        filteredRequestJson);
                             } else {
-                                LOG.error("Sanity check failed on request: " + requestId);
+                                LOG.error("Sanity check failed on request: " + filteredRequestJson);
                             }
+                            // even if sanity check failed there might still be information worth
+                            // reporting from the sample-level validation reports
+                            messagingGateway.publish(requestId,
+                                    IGO_NEW_REQUEST_TOPIC,
+                                    filteredRequestJson);
                         }
                         // data dog log message
                         String ddogLogMessage = validRequestChecker.generateValidationReport(
