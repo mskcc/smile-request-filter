@@ -170,7 +170,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         }
         // update contents of validation map to return
         validationMap.put("validationStatus", validationStatus);
-        validationMap.put("validationReport", validationReport);
+        validationMap.put("validationReport", mapper.writeValueAsString(validationReport));
         return validationMap;
     }
 
@@ -223,7 +223,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
         // update contents of validation map to return
         validationMap.put("validationStatus", validationStatus);
-        validationMap.put("validationReport", validationReport);
+        validationMap.put("validationReport", mapper.writeValueAsString(validationReport));
         return validationMap;
     }
 
@@ -299,7 +299,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             validationReport.put("igoComplete", "false");
         }
         validationMap.put("validationStatus", validationStatus);
-        validationMap.put("validationReport", validationReport);
+        validationMap.put("validationReport", mapper.writeValueAsString(validationReport));
         return validationMap;
     }
 
@@ -334,7 +334,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             validationReport.put("normalizedPatientId", "missing from 'cmoSampleIdFields'");
         }
         validationMap.put("validationStatus", validationStatus);
-        validationMap.put("validationReport", validationReport);
+        validationMap.put("validationReport", mapper.writeValueAsString(validationReport));
         return validationMap;
     }
 
