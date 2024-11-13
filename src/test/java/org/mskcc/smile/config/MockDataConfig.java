@@ -10,18 +10,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.mockito.Mockito;
 import org.mskcc.smile.commons.FileUtil;
 import org.mskcc.smile.model.MockJsonTestData;
-import org.mskcc.smile.service.impl.ValidRequestCheckerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
 @Configuration
-@ComponentScan(basePackages = "org.mskcc.smile.commons.*")
 public class MockDataConfig {
     private final ObjectMapper mapper = new ObjectMapper();
     private final String MOCKED_REQUEST_DATA_DETAILS_FILEPATH = "data/mocked_request_data_details.txt";
@@ -40,11 +36,6 @@ public class MockDataConfig {
     @Bean
     public FileUtil fileUtil() {
         return fileUtil;
-    }
-
-    @Bean
-    public ValidRequestCheckerImpl validRequestCheckerImpl() {
-        return new ValidRequestCheckerImpl();
     }
 
     private Map<String, MockJsonTestData> mockedRequestJsonDataMap;

@@ -2,7 +2,6 @@ package org.mskcc.smile.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -29,16 +28,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsgHandlingService {
 
-    @Value("${igo.validate_promoted_request_topic}")
+    @Value("${igo.validate_promoted_request_topic:}")
     private String VALIDATE_PROMOTED_REQUEST_TOPIC;
 
-    @Value("${igo.cmo_promoted_label_topic}")
+    @Value("${igo.cmo_promoted_label_topic:}")
     private String CMO_PROMOTED_LABEL_TOPIC;
 
-    @Value("${igo.promoted_request_topic}")
+    @Value("${igo.promoted_request_topic:}")
     private String IGO_PROMOTED_REQUEST_TOPIC;
 
-    @Value("${num.promoted_request_handler_threads}")
+    @Value("${num.promoted_request_handler_threads:1}")
     private int NUM_PROMOTED_REQUEST_HANDLERS;
 
     @Autowired
