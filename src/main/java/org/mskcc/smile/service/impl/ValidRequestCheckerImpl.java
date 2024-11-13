@@ -74,7 +74,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
             // get validation report and check status
             Map<String, String> validationReport =
-                    mapper.convertValue(sampleStatus.get("validationReport"), Map.class);
+                    mapper.readValue((String) sampleStatus.get("validationReport"), Map.class);
             if ((Boolean) sampleStatus.get("validationStatus")) {
                 validSampleCount++;
                 updatedSampleList.add(sampleObj);
@@ -101,7 +101,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             if (validSampleCount < sampleList.length) {
                 requestValidationReport.put("samples",
                         mapper.convertValue(invalidRequestSamplesStatuses, Object.class));
-                requestStatus.replace("validationReport", requestValidationReport);
+                requestStatus.replace("validationReport", mapper.writeValueAsString(requestValidationReport));
             }
         }
         requestJsonMap.put("status", requestStatus);
@@ -138,11 +138,11 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         }
         if (validPromotedSampleCount == 0) {
             requestStatus.put("validationStatus", Boolean.FALSE);
-            Map<String, Object> requestValidationReport =
-                    (Map<String, Object>) requestStatus.get("validationReport");
+            Map<String, Object> requestValidationReport
+                    = mapper.readValue((String) requestStatus.get("validationReport"), Map.class);
             requestValidationReport.put("samples", "All samples in the promoted "
                     + "IGO request JSON failed validation.");
-            requestStatus.replace("validationReport", requestValidationReport);
+            requestStatus.replace("validationReport", mapper.writeValueAsString(requestValidationReport));
         }
         requestJsonMap.put("status", requestStatus);
         requestJsonMap.replace("samples", updatedSampleList.toArray(new Object[0]));
@@ -189,7 +189,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (StringUtils.isAllBlank(requestJson)) {
             validationReport.put("requestJson", "Request JSON received is empty");
             validationMap.put("validationStatus", Boolean.FALSE);
-            validationMap.put("validationReport", validationReport);
+            validationMap.put("validationReport", mapper.writeValueAsString(validationReport));
             return validationMap;
         }
 
@@ -251,7 +251,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (sampleMap == null || sampleMap.isEmpty()) {
             validationReport.put("sampleMetadata", "sample metadata json is empty");
             validationMap.put("validationStatus", Boolean.FALSE);
-            validationMap.put("validationReport", validationReport);
+            validationMap.put("validationReport", mapper.writeValueAsString(validationReport));
             return validationMap;
         }
 
@@ -320,7 +320,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         if (sampleMap == null || sampleMap.isEmpty()) {
             validationReport.put("sampleMetadata", "sample metadata json is empty");
             validationMap.put("validationStatus", Boolean.FALSE);
-            validationMap.put("validationReport", validationReport);
+            validationMap.put("validationReport", mapper.writeValueAsString(validationReport));
             return validationMap;
         }
 
@@ -634,7 +634,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         } else {
             Map<String, Object> statusMap = (Map<String, Object>) filteredJsonMap.get("status");
             Map<String, Object> validationReport =
-                    mapper.convertValue(statusMap.get("validationReport"), Map.class);
+                    mapper.readValue((String) statusMap.get("validationReport"), Map.class);
 
             // if request validation report is not empty then log for ddog
             if (!validationReport.isEmpty()) {
@@ -653,7 +653,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                 Map<String, Object> sampleStatusMap
                         = mapper.convertValue(sampleMap.get("status"), Map.class);
                 Map<String, String> sampleValidationReport =
-                        mapper.convertValue(sampleStatusMap.get("validationReport"), Map.class);
+                        mapper.readValue((String) sampleStatusMap.get("validationReport"), Map.class);
                 try {
                     String sampleId = ObjectUtils.firstNonNull(
                             sampleMap.get("igoId"), sampleMap.get("primaryId")).toString();
