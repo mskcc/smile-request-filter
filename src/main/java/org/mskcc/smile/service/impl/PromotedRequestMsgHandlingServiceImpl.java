@@ -1,5 +1,6 @@
 package org.mskcc.smile.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
 import java.nio.charset.StandardCharsets;
@@ -74,9 +75,8 @@ public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsg
                                 validRequestChecker.generatePromotedRequestValidationMap(requestJson);
                         Map<String, Object> requestStatus =
                                 mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
-                        // TODO: Promoted requests are still not supported. If in the future this changes,
-                        // and it is desired, then the promoted request json should be updated with the
-                        // request status map
+                        String requestWithStatus = updateJsonWithValidationMap(requestJson, requestStatus);
+
                         if ((Boolean) requestStatus.get("validationStatus")) {
                             // if request is cmo then publish to CMO_PROMOTED_LABEL_TOPIC
                             // otherwise publish to IGO_PROMOTED_REQUEST_TOPIC
@@ -84,7 +84,7 @@ public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsg
                                     ? CMO_PROMOTED_LABEL_TOPIC : IGO_PROMOTED_REQUEST_TOPIC;
                             String requestId = validRequestChecker.getRequestId(requestJson);
                             LOG.info("Promoted request passed sanity checks - publishing to: " + topic);
-                            messagingGateway.publish(requestId, topic, requestJson);
+                            messagingGateway.publish(requestId, topic, requestWithStatus);
                         }
                     }
                     if (interrupted && promotedRequestQueue.isEmpty()) {
@@ -163,5 +163,20 @@ public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsg
                 }
             }
         });
+    }
+
+    /**
+     * Updates the input json with the validation map provided.
+     * The validation map contains the validation report and validation status.
+     * @param inputJson
+     * @param validationMap
+     * @return String
+     * @throws JsonProcessingException
+     */
+    private String updateJsonWithValidationMap(String inputJson, Map<String, Object> validationMap)
+            throws JsonProcessingException {
+        Map<String, Object> inputJsonMap = mapper.readValue(inputJson, Map.class);
+        inputJsonMap.put("status", validationMap);
+        return mapper.writeValueAsString(inputJsonMap);
     }
 }

@@ -376,7 +376,7 @@ public class ValidRequestCheckerTest {
 
         // assert request validation report has 'samples' and length is 4
         Map<String, Object> validationReport =
-                mapper.convertValue(requestStatus.get("validationReport"), Map.class);
+                mapper.readValue((String) requestStatus.get("validationReport"), Map.class);
         Object[] failedSamplesList = mapper.convertValue(validationReport.get("samples"),
                 Object[].class);
         Assertions.assertTrue(failedSamplesList.length == 3);
