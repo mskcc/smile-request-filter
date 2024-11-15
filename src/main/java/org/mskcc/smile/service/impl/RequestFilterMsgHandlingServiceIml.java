@@ -2,7 +2,6 @@ package org.mskcc.smile.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -28,16 +27,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageHandlingService {
 
-    @Value("${igo.request_filter_topic}")
+    @Value("${igo.request_filter_topic:}")
     private String IGO_REQUEST_FILTER_TOPIC;
 
-    @Value("${igo.cmo_label_generator_topic}")
+    @Value("${igo.cmo_label_generator_topic:}")
     private String CMO_LABEL_GENERATOR_TOPIC;
 
-    @Value("${igo.new_request_topic}")
+    @Value("${igo.new_request_topic:}")
     private String IGO_NEW_REQUEST_TOPIC;
 
-    @Value("${num.new_request_handler_threads}")
+    @Value("${num.new_request_handler_threads:1}")
     private int NUM_NEW_REQUEST_HANDLERS;
 
     @Autowired
@@ -79,25 +78,27 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                             if (passCheck) {
                                 LOG.info("Request'" + requestId + "' passed sanity check, publishing to: "
                                         + CMO_LABEL_GENERATOR_TOPIC);
-                                // even if sanity check passed there might still be information worth
-                                // reporting from the sample-level validation reports
-                                messagingGateway.publish(requestId,
+                            } else {
+                                LOG.error("Sanity check failed on request: " + filteredRequestJson);
+                            }
+                            // even if sanity check failed there might still be information worth
+                            // reporting from the sample-level validation reports
+                            messagingGateway.publish(requestId,
                                     CMO_LABEL_GENERATOR_TOPIC,
                                     filteredRequestJson);
-                            } else {
-                                LOG.error("Sanity check failed on request: " + requestId);
-                            }
                         } else {
                             LOG.info("Handling non-CMO request...");
                             if (passCheck) {
                                 LOG.info("Request '" + requestId + "' passed sanity check, publishing to: "
                                         + IGO_NEW_REQUEST_TOPIC);
-                                messagingGateway.publish(requestId,
-                                        IGO_NEW_REQUEST_TOPIC,
-                                        filteredRequestJson);
                             } else {
-                                LOG.error("Sanity check failed on request: " + requestId);
+                                LOG.error("Sanity check failed on request: " + filteredRequestJson);
                             }
+                            // even if sanity check failed there might still be information worth
+                            // reporting from the sample-level validation reports
+                            messagingGateway.publish(requestId,
+                                    IGO_NEW_REQUEST_TOPIC,
+                                    filteredRequestJson);
                         }
                         // data dog log message
                         String ddogLogMessage = validRequestChecker.generateValidationReport(

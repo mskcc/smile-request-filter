@@ -1,8 +1,8 @@
 package org.mskcc.smile.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -29,16 +29,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsgHandlingService {
 
-    @Value("${igo.validate_promoted_request_topic}")
+    @Value("${igo.validate_promoted_request_topic:}")
     private String VALIDATE_PROMOTED_REQUEST_TOPIC;
 
-    @Value("${igo.cmo_promoted_label_topic}")
+    @Value("${igo.cmo_promoted_label_topic:}")
     private String CMO_PROMOTED_LABEL_TOPIC;
 
-    @Value("${igo.promoted_request_topic}")
+    @Value("${igo.promoted_request_topic:}")
     private String IGO_PROMOTED_REQUEST_TOPIC;
 
-    @Value("${num.promoted_request_handler_threads}")
+    @Value("${num.promoted_request_handler_threads:1}")
     private int NUM_PROMOTED_REQUEST_HANDLERS;
 
     @Autowired
@@ -75,6 +75,8 @@ public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsg
                                 validRequestChecker.generatePromotedRequestValidationMap(requestJson);
                         Map<String, Object> requestStatus =
                                 mapper.convertValue(promotedRequestJsonMap.get("status"), Map.class);
+                        String requestWithStatus = updateJsonWithValidationMap(requestJson, requestStatus);
+
                         if ((Boolean) requestStatus.get("validationStatus")) {
                             // if request is cmo then publish to CMO_PROMOTED_LABEL_TOPIC
                             // otherwise publish to IGO_PROMOTED_REQUEST_TOPIC
@@ -82,7 +84,7 @@ public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsg
                                     ? CMO_PROMOTED_LABEL_TOPIC : IGO_PROMOTED_REQUEST_TOPIC;
                             String requestId = validRequestChecker.getRequestId(requestJson);
                             LOG.info("Promoted request passed sanity checks - publishing to: " + topic);
-                            messagingGateway.publish(requestId, topic, requestJson);
+                            messagingGateway.publish(requestId, topic, requestWithStatus);
                         }
                     }
                     if (interrupted && promotedRequestQueue.isEmpty()) {
@@ -161,5 +163,20 @@ public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsg
                 }
             }
         });
+    }
+
+    /**
+     * Updates the input json with the validation map provided.
+     * The validation map contains the validation report and validation status.
+     * @param inputJson
+     * @param validationMap
+     * @return String
+     * @throws JsonProcessingException
+     */
+    private String updateJsonWithValidationMap(String inputJson, Map<String, Object> validationMap)
+            throws JsonProcessingException {
+        Map<String, Object> inputJsonMap = mapper.readValue(inputJson, Map.class);
+        inputJsonMap.put("status", validationMap);
+        return mapper.writeValueAsString(inputJsonMap);
     }
 }
