@@ -277,13 +277,13 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             validationStatus = Boolean.FALSE;
             validationReport.put("cmoPatientId", "missing");
         }
-        if (!(hasValidSpecimenType(sampleMap) || hasSampleType(sampleMap))) {
+        if (!(hasValidSpecimenType(sampleMap) || hasValidSampleType(sampleMap))) {
             validationStatus = Boolean.FALSE;
             if (!hasValidSpecimenType(sampleMap)) {
                 validationReport.put("specimenType (sampleClass)", "invalid");
             }
-            if (!hasSampleType(sampleMap)) {
-                validationReport.put("sampleType", "missing from 'cmoSampleIdFields'");
+            if (!hasValidSampleType(sampleMap)) {
+                validationReport.put("sampleType", "invalid 'sampleType' from 'cmoSampleIdFields'");
             }
         }
         if (!hasNormalizedPatientId(sampleMap)) {
@@ -512,14 +512,27 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                 || SpecimenType.ORGANOID.getValue().equalsIgnoreCase(specimenType)) {
             return hasCmoSampleClass(sampleMap);
         }
+
+        // resolve sample type detailed in case of cfdna
+        String sampleTypeDetailed = null;
+        if (sampleMap.containsKey("cmoSampleIdFields")) {
+            Map<String, String> cmoSampleIdFields = mapper.convertValue(
+                    sampleMap.get("cmoSampleIdFields"), Map.class);
+            // relax the check on naToExtract and instead see if field is simply present
+            // if naToExtract field is present but empty then the label generator assumes DNA
+            sampleTypeDetailed = cmoSampleIdFields.get("sampleType");
+        }
+
         // if specimen type is none of the above then check if exosome or cfdna
         // and use sample origin if true
         if (SpecimenType.EXOSOME.getValue().equalsIgnoreCase(specimenType)
                 || SpecimenType.CFDNA.getValue().equalsIgnoreCase(specimenType)) {
-            return hasSampleOrigin(sampleMap);
+            return hasSampleOrigin(sampleMap) || !isBlank(sampleTypeDetailed);
         }
         return Boolean.TRUE;
     }
+
+
 
     private Boolean hasCmoSampleClass(Map<String, Object> sampleMap) {
         Object cmoSampleClassObject = ObjectUtils.firstNonNull(sampleMap.get("cmoSampleClass"),
@@ -542,23 +555,28 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         return Boolean.TRUE;
     }
 
-    /**
-     * Determines whether sample type is valid.
-     * - if sample type is null or empty then check na to extract
-     * - if sampletype is pooled library then check recipe/baitset
-     * - return true if sample type is a valid enum
-     * @throws JsonProcessingException or JsonMappingException
-     */
-    private Boolean hasSampleType(Map<String, Object> sampleMap)
-            throws JsonMappingException, JsonProcessingException {
-        String sampleType = null;
+    private String getSampleTypeDetailed(Map<String, Object> sampleMap) {
+        String sampleTypeDetailed = null;
         if (sampleMap.containsKey("cmoSampleIdFields")) {
             Map<String, String> cmoSampleIdFields = mapper.convertValue(
                     sampleMap.get("cmoSampleIdFields"), Map.class);
             // relax the check on naToExtract and instead see if field is simply present
             // if naToExtract field is present but empty then the label generator assumes DNA
-            sampleType = cmoSampleIdFields.get("sampleType");
+            sampleTypeDetailed = cmoSampleIdFields.get("sampleType");
         }
+        return sampleTypeDetailed;
+    }
+
+    /**
+     * Determines whether sample type is valid.
+     * - if sample type is null or empty then check na to extract
+     * - if sample type is pooled library then check recipe/baitset
+     * - return true if sample type is a valid enum
+     * @throws JsonProcessingException or JsonMappingException
+     */
+    private Boolean hasValidSampleType(Map<String, Object> sampleMap)
+            throws JsonMappingException, JsonProcessingException {
+        String sampleType = getSampleTypeDetailed(sampleMap);
 
         return ((isBlank(sampleType) && hasNAtoExtract(sampleMap))
                 || (SampleType.POOLED_LIBRARY.getValue().equalsIgnoreCase(sampleType)

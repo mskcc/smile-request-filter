@@ -1,6 +1,10 @@
 package org.mskcc.smile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
@@ -413,5 +417,97 @@ public class ValidRequestCheckerTest {
                 validRequestChecker.generateValidationReport(requestJson.getJsonString(),
                         modifiedRequestJson);
         Assertions.assertFalse(StringUtils.isBlank(ddogValidationReport));
+    }
+
+    @Test
+    public void testFlexibleCfDnaSampleValidation() throws Exception {
+        Map<String, Object> sampleMap = getIgoSampleMap("08944_B_1", "08944_B", "cfDNA",
+                "Unknown Tumor", "DNA/cDNA Library", "", "Fresh or Frozen", true, true,
+                true, true, "C-K592CC", "NORM_PATIENT_ID", "sample_1");
+        Map<String, Object> sampleStatus = validRequestChecker.generateCmoSampleValidationMap(sampleMap);
+        Assertions.assertTrue((Boolean) sampleStatus.get("validationStatus"));
+    }
+
+    @Test
+    public void testFlexibleCfDnaSampleValidationFail() throws Exception {
+        Map<String, Object> sampleMap = getIgoSampleMap("08944_B_1", "08944_B", "Non-PDX",
+                "Unknown Tumor", "DNA/cDNA Library", "", "Fresh or Frozen", true, true,
+                true, true, "C-K592CC", "NORM_PATIENT_ID", "sample_1");
+        Map<String, Object> sampleStatus = validRequestChecker.generateCmoSampleValidationMap(sampleMap);
+        Assertions.assertFalse((Boolean) sampleStatus.get("validationStatus"));
+    }
+
+    /**
+     * Returns a mocked sampleMap.
+     * @param igoId
+     * @param igoRequestId
+     * @param specimenType
+     * @param cmoSampleClass
+     * @param sampleTypeDetailed
+     * @param naToExtract
+     * @param sampleOrigin
+     * @param withFastQs
+     * @param withBaitSet
+     * @param isCmoSample
+     * @param isIgoComplete
+     * @param cmoPatientId
+     * @param normalizedPatientId
+     * @param investigatorSampleId
+     * @return Map
+     */
+    private Map<String, Object> getIgoSampleMap(String igoId, String igoRequestId, String specimenType,
+            String cmoSampleClass, String sampleTypeDetailed, String naToExtract, String sampleOrigin,
+            Boolean withFastQs, Boolean withBaitSet, Boolean isCmoSample, Boolean isIgoComplete,
+            String cmoPatientId, String normalizedPatientId, String investigatorSampleId) {
+        Map<String, Object> sampleMap = new HashMap<>();
+        sampleMap.put("igoId", igoId);
+        sampleMap.put("igoRequestId", igoRequestId);
+        sampleMap.put("specimenType", specimenType);
+        sampleMap.put("cmoSampleClass", cmoSampleClass);
+        sampleMap.put("sampleOrigin", sampleOrigin);
+        sampleMap.put("cmoPatientId", cmoPatientId);
+        sampleMap.put("igoComplete", isIgoComplete);
+        sampleMap.put("investigatorSampleId", investigatorSampleId);
+
+        if (withFastQs) {
+            sampleMap.put("libraries", makeMockLibraries());
+        } else {
+            sampleMap.put("libraries", new ArrayList<>());
+        }
+
+        if (withBaitSet) {
+            sampleMap.put("baitSet", "MOCK_BAIT_SET");
+        } else {
+            sampleMap.put("baitSet", null);
+        }
+
+        Map<String, String> additionalProperties = new HashMap<>();
+        if (isCmoSample) {
+            additionalProperties.put("isCmoSample", "true");
+        } else {
+            additionalProperties.put("isCmoSample", "false");
+        }
+        sampleMap.put("additionalProperties", additionalProperties);
+
+        Map<String, String> cmoSampleIdFields = new HashMap<>();
+        cmoSampleIdFields.put("sampleType", sampleTypeDetailed);
+        cmoSampleIdFields.put("naToExtract", naToExtract);
+        cmoSampleIdFields.put("normalizedPatientId", normalizedPatientId);
+        sampleMap.put("cmoSampleIdFields", cmoSampleIdFields);
+
+        return sampleMap;
+    }
+
+    /**
+     * Returns a mocked libraries list for sampleMap.
+     * @return List
+     */
+    private List<Object> makeMockLibraries() {
+        String[] fastqs = {"fastq1", "fastq2"};
+        Map<String, Object> runMap = new HashMap<>();
+        runMap.put("fastqs", fastqs);
+        Map<String, Object> libMap = new HashMap<>();
+        libMap.put("runs", Arrays.asList(runMap));
+        return Arrays.asList(libMap);
     }
 }
