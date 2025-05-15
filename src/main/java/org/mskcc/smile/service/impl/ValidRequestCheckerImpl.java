@@ -85,27 +85,41 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                             + "validation report (failed samples): " + mapper.writeValueAsString(sampleMap));
                     invalidRequestSamplesStatuses.add(sampleObj);
                 } else {
+                    // samples passes as 'valid' since it gets added to the final samples list
+                    // but not 'valid' enough for the 'validSampleCount' counter
                     updatedSampleList.add(sampleObj);
                 }
             }
         }
         // update request json with request status and samples containing validation reports
         if ((Boolean) requestStatus.get("validationStatus")) {
-            Map<String, Object> requestValidationReport = new HashMap<>();
-            // set validation status for request to false if none of the samples passed
+            Map<String, Object> requestValidationReport 
+                    = parseValidationReportMap(requestStatus.get("validationReport"));
+
+            // validSampleCount can be zero while 'updatedSampleList' is not empty - this indicates
+            // that there are some samples with passable errors that are still allowed to import
+            // into smile and/or get a CMO label generated
             if (validSampleCount == 0) {
-                requestStatus.replace("validationStatus", Boolean.FALSE);
+                requestStatus.put("validationStatus", Boolean.FALSE);
+                if (updatedSampleList.isEmpty()) {
+                    requestValidationReport.put("samples (failed)", "All request samples failed validation");
+                } else {
+                    requestValidationReport.put("samples (failed)", "Some request samples failed validation");
+                }
             }
-            // only replace contents of the validation report if the count of valid
-            // samples is less than the original sample list
-            if (validSampleCount < sampleList.length) {
+
+            // report samples with critical validation errors in the
+            // request-level validation report as 'samples'
+            if (!invalidRequestSamplesStatuses.isEmpty()) {
                 requestValidationReport.put("samples",
                         mapper.convertValue(invalidRequestSamplesStatuses, Object.class));
-                requestStatus.replace("validationReport", mapper.writeValueAsString(requestValidationReport));
             }
+
+            // update request status validation report
+            requestStatus.replace("validationReport", mapper.writeValueAsString(requestValidationReport));
         }
         requestJsonMap.put("status", requestStatus);
-        requestJsonMap.replace("samples", updatedSampleList.toArray(new Object[0]));
+        requestJsonMap.replace("samples", updatedSampleList.toArray(Object[]::new));
         return mapper.writeValueAsString(requestJsonMap);
     }
 
@@ -216,7 +230,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
 
         // determine whether request json has samples
         if (!requestHasSamples(requestJson)) {
-            validationReport.put("samples", "Request JSON is missing 'samples' or "
+            validationReport.put("samples (missing)", "Request JSON is missing 'samples' or "
                     + "'samples' is an empty list.");
             validationStatus = Boolean.FALSE;
         }
@@ -692,5 +706,14 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         // if allValid is still true then there wasn't anything to report at the request
         // or sample level.. return null
         return allValid ? null : builder.toString();
+    }
+
+    private Map<String, Object> parseValidationReportMap(Object validationReport) {
+        String validationReportStr = mapper.convertValue(validationReport, String.class);
+        if (validationReportStr.equals("{}")) {
+            return new HashMap<>();
+        } else {
+            return mapper.convertValue(validationReport, Map.class);
+        }
     }
 }
