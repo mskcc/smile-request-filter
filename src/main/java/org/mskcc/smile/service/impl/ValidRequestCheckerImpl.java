@@ -496,14 +496,22 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * @return
      */
     private Boolean hasValidSpecimenType(Map<String, Object> sampleMap) {
-        //this can also be sampleClass
+        // this can also be 'sampleClass' if validating data in the universal schema format
         Object specimenTypeObject = ObjectUtils.firstNonNull(sampleMap.get("specimenType"),
                sampleMap.get("sampleClass"));
         String specimenType = String.valueOf(specimenTypeObject);
+
+        // if valid specimen type right off the bat then return true
+        if (!isBlank(specimenType) && EnumUtils.isValidEnumIgnoreCase(SpecimenType.class, specimenType)) {
+            return Boolean.TRUE;
+        }
+
+        // if not a valid specimen type enum then check for valid sample class
         if (isBlank(specimenType)
                 || !EnumUtils.isValidEnumIgnoreCase(SpecimenType.class, specimenType)) {
             return hasCmoSampleClass(sampleMap);
         }
+
         // check if specimen type is cellline, pdx, xenograft, xenograftderivedcellline, or organoid
         if (SpecimenType.CELLLINE.getValue().equalsIgnoreCase(specimenType)
                 || SpecimenType.PDX.getValue().equalsIgnoreCase(specimenType)
@@ -532,27 +540,18 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         return Boolean.TRUE;
     }
 
-
-
     private Boolean hasCmoSampleClass(Map<String, Object> sampleMap) {
+        // can be 'cmoSampleClass' if data is from IGO or 'sampleType' if data is in universal schema format
         Object cmoSampleClassObject = ObjectUtils.firstNonNull(sampleMap.get("cmoSampleClass"),
                 sampleMap.get("sampleType"));
         String cmoSampleClass = String.valueOf(cmoSampleClassObject);
-        if (isBlank(cmoSampleClass)
-                || !EnumUtils.isValidEnumIgnoreCase(CmoSampleClass.class,
-                        cmoSampleClass)) {
-            return Boolean.FALSE;
-        }
-        return Boolean.TRUE;
+        return (!isBlank(cmoSampleClass)
+                && EnumUtils.isValidEnumIgnoreCase(CmoSampleClass.class, cmoSampleClass));
     }
 
     private Boolean hasSampleOrigin(Map<String, Object> sampleMap) {
-        if (isBlank((String) sampleMap.get("sampleOrigin"))
-                || !EnumUtils.isValidEnumIgnoreCase(SampleOrigin.class,
-                        (String) sampleMap.get("sampleOrigin"))) {
-            return Boolean.FALSE;
-        }
-        return Boolean.TRUE;
+        String sampleOrigin = String.valueOf(sampleMap.get("sampleOrigin"));
+        return (!isBlank(sampleOrigin) && EnumUtils.isValidEnumIgnoreCase(SampleOrigin.class, sampleOrigin));
     }
 
     private String getSampleTypeDetailed(Map<String, Object> sampleMap) {
