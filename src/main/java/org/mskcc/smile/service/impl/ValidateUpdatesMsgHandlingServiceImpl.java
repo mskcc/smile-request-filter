@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -54,11 +56,11 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
 
     private static CountDownLatch requestUpdateFilterHandlerShutdownLatch;
     private static final BlockingQueue<String> requestUpdateFilterQueue =
-            new LinkedBlockingQueue<String>();
+            new LinkedBlockingQueue<>();
 
     private static CountDownLatch sampleUpdateFilterHandlerShutdownLatch;
-    private static final BlockingQueue<String> sampleUpdateFilterQueue =
-            new LinkedBlockingQueue<String>();
+    private static final BlockingQueue<List<Object>> sampleUpdateFilterQueue =
+            new LinkedBlockingQueue<>();
 
     @Override
     public void initialize(Gateway gateway) throws Exception {
@@ -151,49 +153,68 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
             phaser.arrive();
             while (true) {
                 try {
-                    String sampleJson = sampleUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
-                    if (sampleJson != null) {
-                        Map<String, Object> sampleMap = mapper.readValue(sampleJson, Map.class);
-                        Boolean hasRequestId = validRequestChecker.hasRequestId(sampleJson);
-                        if (!hasRequestId) {
-                            LOG.warn("Cannot extract request ID information from sample update message: "
-                                    + sampleJson);
-                            continue;
+                    List<Object> sampleJsonList = sampleUpdateFilterQueue.poll(100, TimeUnit.MILLISECONDS);
+                    if (sampleJsonList != null) {
+                        List<String> cmoSamples = new ArrayList<>();
+                        List<String> nonCmoSamples = new ArrayList<>();
+
+                        for (int i = 0; i < sampleJsonList.size(); i++) {
+                            String sampleJson = mapper.writeValueAsString(sampleJsonList.get(i));
+
+                            Map<String, Object> sampleMap = mapper.readValue(sampleJson, Map.class);
+                            Boolean hasRequestId = validRequestChecker.hasRequestId(sampleJson);
+                            if (!hasRequestId) {
+                                LOG.warn("Cannot extract request ID information from sample update message: "
+                                        + sampleJson);
+                                continue;
+                            }
+
+                            Boolean isCmoSample = validRequestChecker.isCmo(sampleJson);
+                            if (isCmoSample) {
+                                Map<String, Object> sampleStatus =
+                                        validRequestChecker.generateCmoSampleValidationMap(sampleMap);
+                                // attach sample status to sample json to publish
+                                String sampleWithStatus
+                                        = updateJsonWithValidationMap(sampleJson, sampleStatus);
+
+                                Boolean passCheck = (Boolean) sampleStatus.get("validationStatus");
+                                if (passCheck) {
+                                    LOG.info("Sanity check passed, publishing CMO sample"
+                                            + "update to: " + CMO_LABEL_UPDATE_TOPIC);
+                                } else {
+                                    LOG.error("Sanity check failed on CMO sample updates: "
+                                            + sampleWithStatus);
+                                }
+                                cmoSamples.add(sampleWithStatus);
+                            } else {
+                                Map<String, Object> sampleStatus =
+                                        validRequestChecker.generateNonCmoSampleValidationMap(sampleMap);
+                                // attach sample status to sample json to publish
+                                String sampleWithStatus 
+                                        = updateJsonWithValidationMap(sampleJson, sampleStatus);
+
+                                Boolean passCheck = (Boolean) sampleStatus.get("validationStatus");
+                                if (passCheck) {
+                                    LOG.info("Sanity check passed, publishing non-CMO "
+                                            + "sample update to: " + SERVER_SAMPLE_UPDATE_TOPIC);
+                                } else {
+                                    LOG.error("Sanity check failed on non-CMO sample update received: "
+                                            + sampleWithStatus);
+                                }
+                                nonCmoSamples.add(sampleWithStatus);
+                            }
                         }
 
-                        Boolean isCmoSample = validRequestChecker.isCmo(sampleJson);
-                        if (isCmoSample) {
-                            Map<String, Object> sampleStatus =
-                                    validRequestChecker.generateCmoSampleValidationMap(sampleMap);
-                            // attach sample status to sample json to publish
-                            String sampleWithStatus = updateJsonWithValidationMap(sampleJson, sampleStatus);
-
-                            Boolean passCheck = (Boolean) sampleStatus.get("validationStatus");
-                            if (passCheck) {
-                                LOG.info("Sanity check passed, publishing CMO sample"
-                                        + "update to: " + CMO_LABEL_UPDATE_TOPIC);
-                            } else {
-                                LOG.error("Sanity check failed on CMO sample updates: " + sampleWithStatus);
-                            }
+                        // direct samples to label generator or smile server based on cmo status
+                        // handle the possibility that there could be a mix of both cmo and non-cmo samples
+                        if (!cmoSamples.isEmpty()) {
                             messagingGateway.publish(CMO_LABEL_UPDATE_TOPIC,
-                                        sampleWithStatus);
-                        } else {
-                            Map<String, Object> sampleStatus =
-                                    validRequestChecker.generateNonCmoSampleValidationMap(sampleMap);
-                            // attach sample status to sample json to publish
-                            String sampleWithStatus = updateJsonWithValidationMap(sampleJson, sampleStatus);
-
-                            Boolean passCheck = (Boolean) sampleStatus.get("validationStatus");
-                            if (passCheck) {
-                                LOG.info("Sanity check passed, publishing non-CMO "
-                                        + "sample update to: " + SERVER_SAMPLE_UPDATE_TOPIC);
-                            } else {
-                                LOG.error("Sanity check failed on non-CMO sample update received: "
-                                        + sampleWithStatus);
-                            }
+                                            cmoSamples);
+                        }
+                        if (!nonCmoSamples.isEmpty()) {
                             messagingGateway.publish(
-                                    SERVER_SAMPLE_UPDATE_TOPIC,
-                                    sampleWithStatus);
+                                        SERVER_SAMPLE_UPDATE_TOPIC,
+                                        nonCmoSamples);
                         }
                     }
                     if (interrupted && sampleUpdateFilterQueue.isEmpty()) {
@@ -223,14 +244,14 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
     }
 
     @Override
-    public void sampleUpdateFilterHandler(String sampleJson) throws Exception {
+    public void sampleUpdateFilterHandler(List<Object> sampleJsonList) throws Exception {
         if (!initialized) {
             throw new IllegalStateException("Message Handling Service has not been initialized");
         }
         if (!shutdownInitiated) {
-            sampleUpdateFilterQueue.put(sampleJson);
+            sampleUpdateFilterQueue.put(sampleJsonList);
         } else {
-            LOG.error("Shutdown initiated, not accepting sample: " + sampleJson);
+            LOG.error("Shutdown initiated, not accepting samples: " + sampleJsonList);
             throw new IllegalStateException("Shutdown initiated, not handling any more samples");
         }
     }
@@ -261,10 +282,11 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
             public void onMessage(Message msg, Object message) {
                 LOG.info("Received message on topic: " + VALIDATOR_SAMPLE_UPDATE_TOPIC);
                 try {
-                    String sampleJson = mapper.readValue(
+                    Object msgDataObject = mapper.readValue(
                             new String(msg.getData(), StandardCharsets.UTF_8),
-                            String.class);
-                    updateMessageHandlingService.sampleUpdateFilterHandler(sampleJson);
+                            Object.class);
+                    List<Object> sampleJsonList = mapper.readValue(msgDataObject.toString(), List.class);
+                    updateMessageHandlingService.sampleUpdateFilterHandler(sampleJsonList);
                 } catch (Exception e) {
                     LOG.error("Exception during processing of Sample Metadata update on topic: "
                             + VALIDATOR_SAMPLE_UPDATE_TOPIC, e);
