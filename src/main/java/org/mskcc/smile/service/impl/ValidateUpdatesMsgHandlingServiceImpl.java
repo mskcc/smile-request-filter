@@ -190,7 +190,7 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                                 Map<String, Object> sampleStatus =
                                         validRequestChecker.generateNonCmoSampleValidationMap(sampleMap);
                                 // attach sample status to sample json to publish
-                                String sampleWithStatus 
+                                String sampleWithStatus
                                         = updateJsonWithValidationMap(sampleJson, sampleStatus);
 
                                 Boolean passCheck = (Boolean) sampleStatus.get("validationStatus");
@@ -211,10 +211,15 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                             messagingGateway.publish(CMO_LABEL_UPDATE_TOPIC,
                                             cmoSamples);
                         }
+                        // non-cmo samples are published to the smile-server directly and bypass
+                        // the label generator - these should be published individually
+                        // instead of as an array
                         if (!nonCmoSamples.isEmpty()) {
-                            messagingGateway.publish(
+                            for (String sample : nonCmoSamples) {
+                                messagingGateway.publish(
                                         SERVER_SAMPLE_UPDATE_TOPIC,
-                                        nonCmoSamples);
+                                        sample);
+                            }
                         }
                     }
                     if (interrupted && sampleUpdateFilterQueue.isEmpty()) {
