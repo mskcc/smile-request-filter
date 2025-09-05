@@ -16,6 +16,7 @@ import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.smile.service.RequestFilterMessageHandlingService;
 import org.mskcc.smile.service.ValidRequestChecker;
+import org.mskcc.smile.service.util.NatsMsgUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -173,9 +174,7 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
             public void onMessage(Message msg, Object message) {
                 LOG.info("Received message on topic: " + IGO_REQUEST_FILTER_TOPIC);
                 try {
-                    String requestJson = mapper.readValue(
-                            new String(msg.getData(), StandardCharsets.UTF_8),
-                            String.class);
+                    String requestJson = NatsMsgUtil.extractNatsJsonString(msg);
                     messageHandlingService.requestFilterHandler(requestJson);
                 } catch (Exception e) {
                     LOG.error("Exception during processing of request on topic: "
