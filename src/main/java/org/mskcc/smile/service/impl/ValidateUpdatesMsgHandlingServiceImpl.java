@@ -20,6 +20,7 @@ import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.smile.service.ValidRequestChecker;
 import org.mskcc.smile.service.ValidateUpdatesMessageHandlingService;
+import org.mskcc.smile.service.util.NatsMsgUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -268,9 +269,7 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
             public void onMessage(Message msg, Object message) {
                 LOG.info("Received message on topic: " + VALIDATOR_REQUEST_UPDATE_TOPIC);
                 try {
-                    String requestJson = mapper.readValue(
-                            new String(msg.getData(), StandardCharsets.UTF_8),
-                            String.class);
+                    String requestJson = NatsMsgUtil.extractNatsJsonString(msg);
                     updateMessageHandlingService.requestUpdateFilterHandler(requestJson);
                 } catch (Exception e) {
                     LOG.error("Exception during processing of Request Metadata update on topic: "
@@ -287,10 +286,8 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
             public void onMessage(Message msg, Object message) {
                 LOG.info("Received message on topic: " + VALIDATOR_SAMPLE_UPDATE_TOPIC);
                 try {
-                    Object msgDataObject = mapper.readValue(
-                            new String(msg.getData(), StandardCharsets.UTF_8),
-                            Object.class);
-                    List<Object> sampleJsonList = mapper.readValue(msgDataObject.toString(), List.class);
+                    String sampleUpdatesJson = NatsMsgUtil.extractNatsJsonString(msg);
+                    List<Object> sampleJsonList = mapper.readValue(sampleUpdatesJson, List.class);
                     updateMessageHandlingService.sampleUpdateFilterHandler(sampleJsonList);
                 } catch (Exception e) {
                     LOG.error("Exception during processing of Sample Metadata update on topic: "
