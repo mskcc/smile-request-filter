@@ -4,6 +4,6 @@ ADD . /request-filter
 WORKDIR /request-filter
 RUN mvn clean install
 
-FROM openjdk:21
+FROM ibm-semeru-runtimes:open-21.0.9_10-jdk-jammy
 COPY --from=0 /request-filter/target/smile_request_filter.jar /request-filter/smile_request_filter.jar
 ENTRYPOINT ["java"]
