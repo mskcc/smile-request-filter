@@ -438,6 +438,29 @@ public class ValidRequestCheckerTest {
     }
 
     /**
+     * Tests new IGO schema is still valid.
+     * @throws Exception
+     */
+    @Test
+    public void testUpdatedIgoSchemaRequestJson() throws Exception {
+        MockJsonTestData requestJson = mockedRequestJsonDataMap
+                .get("mockIgoSchemaUpdatedRequest");
+        String modifiedRequestJson = validRequestChecker
+                .getFilteredValidRequestJson(requestJson.getJsonString());
+        Map<String, Object> requestJsonMap = mapper.readValue(modifiedRequestJson, Map.class);
+        Map<String, Object> requestStatus = mapper.convertValue(requestJsonMap.get("status"), Map.class);
+        Assertions.assertTrue((Boolean) requestStatus.get("validationStatus"));
+
+        Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
+                Object[].class);
+        for (Object sample: sampleList) {
+            Map<String, String> sampleMap = mapper.convertValue(sample, Map.class);
+            Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
+            Assertions.assertTrue((Boolean) sampleStatus.get("validationStatus"));
+        }
+    }
+
+    /**
      * Returns a mocked sampleMap.
      * @param igoId
      * @param igoRequestId
