@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -514,15 +514,16 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         Object specimenTypeObject = ObjectUtils.firstNonNull(sampleMap.get("specimenType"),
                sampleMap.get("sampleClass"));
         String specimenType = String.valueOf(specimenTypeObject);
-
         // if valid specimen type right off the bat then return true
-        if (!isBlank(specimenType) && EnumUtils.isValidEnumIgnoreCase(SpecimenType.class, specimenType)) {
+        if (!isBlank(specimenType) && Arrays.stream(SpecimenType.values())
+                .anyMatch(st -> st.getValue().equalsIgnoreCase(specimenType))) {
             return Boolean.TRUE;
         }
 
         // if not a valid specimen type enum then check for valid sample class
         if (isBlank(specimenType)
-                || !EnumUtils.isValidEnumIgnoreCase(SpecimenType.class, specimenType)) {
+                || !Arrays.stream(SpecimenType.values())
+                .anyMatch(st -> st.getValue().equalsIgnoreCase(specimenType))) {
             return hasCmoSampleClass(sampleMap);
         }
 
@@ -560,12 +561,14 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
                 sampleMap.get("sampleType"));
         String cmoSampleClass = String.valueOf(cmoSampleClassObject);
         return (!isBlank(cmoSampleClass)
-                && EnumUtils.isValidEnumIgnoreCase(CmoSampleClass.class, cmoSampleClass));
+                && Arrays.stream(CmoSampleClass.values())
+                .anyMatch(c -> c.getValue().equalsIgnoreCase(cmoSampleClass)));
     }
 
     private Boolean hasSampleOrigin(Map<String, Object> sampleMap) {
         String sampleOrigin = String.valueOf(sampleMap.get("sampleOrigin"));
-        return (!isBlank(sampleOrigin) && EnumUtils.isValidEnumIgnoreCase(SampleOrigin.class, sampleOrigin));
+        return (!isBlank(sampleOrigin) && Arrays.stream(SampleOrigin.values())
+                .anyMatch(so -> so.getValue().equalsIgnoreCase(sampleOrigin)));
     }
 
     private String getSampleTypeDetailed(Map<String, Object> sampleMap) {
@@ -594,7 +597,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         return ((isBlank(sampleType) && hasNAtoExtract(sampleMap))
                 || (SampleType.POOLED_LIBRARY.getValue().equalsIgnoreCase(sampleType)
                 && hasBaitSet(sampleMap))
-                || EnumUtils.isValidEnumIgnoreCase(SampleType.class, sampleType));
+                || Arrays.stream(SampleType.values())
+                .anyMatch(st -> st.getValue().equalsIgnoreCase(sampleType)));
     }
 
     private Boolean hasNAtoExtract(Map<String, Object> sampleMap)

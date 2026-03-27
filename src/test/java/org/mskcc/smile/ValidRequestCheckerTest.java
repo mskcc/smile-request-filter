@@ -429,12 +429,12 @@ public class ValidRequestCheckerTest {
     }
 
     @Test
-    public void testFlexibleCfDnaSampleValidationFail() throws Exception {
+    public void testFlexibleCfDnaSampleValidationWithNonPdx() throws Exception {
         Map<String, Object> sampleMap = getIgoSampleMap("08944_B_1", "08944_B", "Non-PDX",
                 "Unknown Tumor", "DNA/cDNA Library", "", "Fresh or Frozen", true, true,
                 true, true, "C-K592CC", "NORM_PATIENT_ID", "sample_1");
         Map<String, Object> sampleStatus = validRequestChecker.generateCmoSampleValidationMap(sampleMap);
-        Assertions.assertFalse((Boolean) sampleStatus.get("validationStatus"));
+        Assertions.assertTrue((Boolean) sampleStatus.get("validationStatus"));
     }
 
     /**
@@ -458,6 +458,16 @@ public class ValidRequestCheckerTest {
             Map<String, Object> sampleStatus = mapper.convertValue(sampleMap.get("status"), Map.class);
             Assertions.assertTrue((Boolean) sampleStatus.get("validationStatus"));
         }
+    }
+
+    @Test
+    public void testNonPdxSpecimenTypeEnumCheck() throws Exception {
+        Map<String, Object> sampleMap = getIgoSampleMap("17892_4", "17892", "Non-PDX",
+            "Unknown Tumor", "Curls/Punches", "DNA", null,
+            Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE,
+            "C-MKHNXX", "NORMPTID", "INV_SID");
+        Map<String, Object> sampleStatus = validRequestChecker.generateCmoSampleValidationMap(sampleMap);
+        Assertions.assertTrue((Boolean) sampleStatus.get("validationStatus"));
     }
 
     /**
