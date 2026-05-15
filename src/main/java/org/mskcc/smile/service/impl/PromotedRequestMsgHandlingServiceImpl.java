@@ -80,7 +80,7 @@ public class PromotedRequestMsgHandlingServiceImpl implements PromotedRequestMsg
                         if ((Boolean) requestStatus.get("validationStatus")) {
                             // if request is cmo then publish to CMO_PROMOTED_LABEL_TOPIC
                             // otherwise publish to IGO_PROMOTED_REQUEST_TOPIC
-                            String topic = validRequestChecker.isCmo(requestJson)
+                            String topic = validRequestChecker.useCmoValidator(requestJson)
                                     ? CMO_PROMOTED_LABEL_TOPIC : IGO_PROMOTED_REQUEST_TOPIC;
                             String requestId = validRequestChecker.getRequestId(requestJson);
                             LOG.info("Promoted request passed sanity checks - publishing to: " + topic);

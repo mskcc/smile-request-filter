@@ -423,7 +423,7 @@ public class ValidRequestCheckerTest {
     public void testFlexibleCfDnaSampleValidation() throws Exception {
         Map<String, Object> sampleMap = getIgoSampleMap("08944_B_1", "08944_B", "cfDNA",
                 "Unknown Tumor", "DNA/cDNA Library", "", "Fresh or Frozen", true, true,
-                true, true, "C-K592CC", "NORM_PATIENT_ID", "sample_1");
+                true, true, "C-K592CC", "NORM_PATIENT_ID", "sample_1", null);
         Map<String, Object> sampleStatus = validRequestChecker.generateCmoSampleValidationMap(sampleMap);
         Assertions.assertTrue((Boolean) sampleStatus.get("validationStatus"));
     }
@@ -432,7 +432,7 @@ public class ValidRequestCheckerTest {
     public void testFlexibleCfDnaSampleValidationWithNonPdx() throws Exception {
         Map<String, Object> sampleMap = getIgoSampleMap("08944_B_1", "08944_B", "Non-PDX",
                 "Unknown Tumor", "DNA/cDNA Library", "", "Fresh or Frozen", true, true,
-                true, true, "C-K592CC", "NORM_PATIENT_ID", "sample_1");
+                true, true, "C-K592CC", "NORM_PATIENT_ID", "sample_1", null);
         Map<String, Object> sampleStatus = validRequestChecker.generateCmoSampleValidationMap(sampleMap);
         Assertions.assertTrue((Boolean) sampleStatus.get("validationStatus"));
     }
@@ -465,9 +465,51 @@ public class ValidRequestCheckerTest {
         Map<String, Object> sampleMap = getIgoSampleMap("17892_4", "17892", "Non-PDX",
             "Unknown Tumor", "Curls/Punches", "DNA", null,
             Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE,
-            "C-MKHNXX", "NORMPTID", "INV_SID");
+            "C-MKHNXX", "NORMPTID", "INV_SID", null);
         Map<String, Object> sampleStatus = validRequestChecker.generateCmoSampleValidationMap(sampleMap);
         Assertions.assertTrue((Boolean) sampleStatus.get("validationStatus"));
+    }
+
+    /**
+     * Tests forCmoLabel=true and isCmo=false.
+     * @throws Exception
+     */
+    @Test
+    public void testForceCmoLabelValidationOverride() throws Exception {
+        // sample with isCmo=false and forceCmoLabel=true
+        Map<String, Object> sampleMap = getIgoSampleMap("08944_B_1", "08944_B", "cfDNA",
+                "Unknown Tumor", "DNA/cDNA Library", "", "Fresh or Frozen", true, true,
+                false, true, "C-K592CC", "NORM_PATIENT_ID", "sample_1", true);
+        Boolean useCmoValidator = validRequestChecker.useCmoValidator(mapper.writeValueAsString(sampleMap));
+        Assertions.assertTrue(useCmoValidator);
+    }
+
+    /**
+     * Tests forCmoLabel=false and isCmo=false.
+     * @throws Exception
+     */
+    @Test
+    public void testForceCmoLabelValidationFalseOverride() throws Exception {
+        // sample with isCmo=false and forceCmoLabel=false
+        Map<String, Object> sampleMap = getIgoSampleMap("08944_B_1", "08944_B", "cfDNA",
+                "Unknown Tumor", "DNA/cDNA Library", "", "Fresh or Frozen", true, true,
+                false, true, "C-K592CC", "NORM_PATIENT_ID", "sample_1", false);
+        Boolean useCmoValidator = validRequestChecker.useCmoValidator(mapper.writeValueAsString(sampleMap));
+        Assertions.assertFalse(useCmoValidator);
+    }
+
+    /**
+     * Tests forCmoLabel=null and isCmo=true.
+     * @throws Exception
+     */
+    @Test
+    public void testForceCmoLabelValidationNullOverride() throws Exception {
+        // sample with isCmo=true and forceCmoLabel=null
+        Map<String, Object> sampleMap = getIgoSampleMap("08944_B_1", "08944_B", "cfDNA",
+                "Unknown Tumor", "DNA/cDNA Library", "", "Fresh or Frozen", true, true,
+                true, true, "C-K592CC", "NORM_PATIENT_ID", "sample_1", null);
+        Boolean useCmoValidator = validRequestChecker.useCmoValidator(mapper.writeValueAsString(sampleMap));
+        Assertions.assertTrue(useCmoValidator);
     }
 
     /**
@@ -486,12 +528,13 @@ public class ValidRequestCheckerTest {
      * @param cmoPatientId
      * @param normalizedPatientId
      * @param investigatorSampleId
+     * @param forceCmoLabel
      * @return Map
      */
     private Map<String, Object> getIgoSampleMap(String igoId, String igoRequestId, String specimenType,
             String cmoSampleClass, String sampleTypeDetailed, String naToExtract, String sampleOrigin,
             Boolean withFastQs, Boolean withBaitSet, Boolean isCmoSample, Boolean isIgoComplete,
-            String cmoPatientId, String normalizedPatientId, String investigatorSampleId) {
+            String cmoPatientId, String normalizedPatientId, String investigatorSampleId, Boolean forceCmoLabel) {
         Map<String, Object> sampleMap = new HashMap<>();
         sampleMap.put("igoId", igoId);
         sampleMap.put("igoRequestId", igoRequestId);
@@ -519,6 +562,9 @@ public class ValidRequestCheckerTest {
             additionalProperties.put("isCmoSample", "true");
         } else {
             additionalProperties.put("isCmoSample", "false");
+        }
+        if (forceCmoLabel != null) {
+            additionalProperties.put("forceCmoLabel", String.valueOf(forceCmoLabel));
         }
         sampleMap.put("additionalProperties", additionalProperties);
 

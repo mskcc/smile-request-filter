@@ -14,7 +14,7 @@ public interface ValidRequestChecker {
             throws JsonMappingException, JsonProcessingException;
     Map<String, Object> generateNonCmoSampleValidationMap(Map<String, Object> sampleMap)
             throws JsonMappingException, JsonProcessingException;
-    Boolean isCmo(String json) throws JsonProcessingException;
+    Boolean useCmoValidator(String json) throws JsonProcessingException;
     String getRequestId(String json) throws JsonProcessingException;
     Boolean hasRequestId(String json) throws JsonProcessingException;
     Map<String, Object> generatePromotedRequestValidationMap(String requestJson) throws JsonMappingException,

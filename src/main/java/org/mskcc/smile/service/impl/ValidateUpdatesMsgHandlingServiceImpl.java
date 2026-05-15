@@ -3,7 +3,6 @@ package org.mskcc.smile.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -170,8 +169,8 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                                 continue;
                             }
 
-                            Boolean isCmoSample = validRequestChecker.isCmo(sampleJson);
-                            if (isCmoSample) {
+                            Boolean useCmoValidator = validRequestChecker.useCmoValidator(sampleJson);
+                            if (useCmoValidator) {
                                 Map<String, Object> sampleStatus =
                                         validRequestChecker.generateCmoSampleValidationMap(sampleMap);
                                 // attach sample status to sample json to publish
@@ -180,8 +179,8 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
 
                                 Boolean passCheck = (Boolean) sampleStatus.get("validationStatus");
                                 if (passCheck) {
-                                    LOG.info("Sanity check passed, publishing CMO sample"
-                                            + "update to: " + CMO_LABEL_UPDATE_TOPIC);
+                                    LOG.info("Sanity check passed, publishing sample to "
+                                            + "label generator: " + CMO_LABEL_UPDATE_TOPIC);
                                 } else {
                                     LOG.error("Sanity check failed on CMO sample updates: "
                                             + sampleWithStatus);

@@ -93,7 +93,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
         }
         // update request json with request status and samples containing validation reports
         if ((Boolean) requestStatus.get("validationStatus")) {
-            Map<String, Object> requestValidationReport 
+            Map<String, Object> requestValidationReport
                     = parseValidationReportMap(requestStatus.get("validationReport"));
 
             // validSampleCount can be zero while 'updatedSampleList' is not empty - this indicates
@@ -353,12 +353,12 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     }
 
     @Override
-    public Boolean isCmo(String json) throws JsonProcessingException {
+    public Boolean useCmoValidator(String json) throws JsonProcessingException {
         if (isBlank(json)) {
             return null;
         }
         Map<String, Object> jsonMap = mapper.readValue(json, Map.class);
-        return isCmo(jsonMap);
+        return isCmo(jsonMap) || isForceCmoLabel(jsonMap);
     }
 
     private Boolean isCmo(Map<String, Object> jsonMap) throws JsonProcessingException {
@@ -367,6 +367,18 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             return Boolean.FALSE;
         }
         return Boolean.valueOf(isCMO);
+    }
+
+    private Boolean isForceCmoLabel(Map<String, Object> jsonMap) throws JsonProcessingException {
+        if (jsonMap.containsKey("additionalProperties")) {
+            Map<String, String> additionalProperties = mapper.convertValue(
+                    jsonMap.get("additionalProperties"), Map.class);
+            if (additionalProperties.containsKey("forceCmoLabel")
+                    && !isBlank(additionalProperties.get("forceCmoLabel"))) {
+                return Boolean.valueOf(additionalProperties.get("forceCmoLabel"));
+            }
+        }
+        return Boolean.FALSE;
     }
 
     private String getIsCmo(Map<String, Object> jsonMap) throws JsonProcessingException {

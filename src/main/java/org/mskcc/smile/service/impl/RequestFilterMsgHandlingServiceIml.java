@@ -2,7 +2,6 @@ package org.mskcc.smile.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -74,7 +73,7 @@ public class RequestFilterMsgHandlingServiceIml implements RequestFilterMessageH
                         String filteredRequestJson = validRequestChecker.getFilteredValidRequestJson(
                                 requestJson);
                         Boolean passCheck = (filteredRequestJson != null);
-                        if (validRequestChecker.isCmo(requestJson)) {
+                        if (validRequestChecker.useCmoValidator(requestJson)) {
                             LOG.info("Handling CMO-specific sanity checking...");
                             if (passCheck) {
                                 LOG.info("Request'" + requestId + "' passed sanity check, publishing to: "
