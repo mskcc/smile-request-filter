@@ -534,7 +534,8 @@ public class ValidRequestCheckerTest {
     private Map<String, Object> getIgoSampleMap(String igoId, String igoRequestId, String specimenType,
             String cmoSampleClass, String sampleTypeDetailed, String naToExtract, String sampleOrigin,
             Boolean withFastQs, Boolean withBaitSet, Boolean isCmoSample, Boolean isIgoComplete,
-            String cmoPatientId, String normalizedPatientId, String investigatorSampleId, Boolean forceCmoLabel) {
+            String cmoPatientId, String normalizedPatientId, String investigatorSampleId,
+            Boolean forceCmoLabel) {
         Map<String, Object> sampleMap = new HashMap<>();
         sampleMap.put("igoId", igoId);
         sampleMap.put("igoRequestId", igoRequestId);
