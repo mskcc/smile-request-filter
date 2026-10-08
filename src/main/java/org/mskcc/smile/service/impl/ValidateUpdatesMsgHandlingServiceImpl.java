@@ -113,7 +113,7 @@ public class ValidateUpdatesMsgHandlingServiceImpl implements ValidateUpdatesMes
                     if (requestJson != null) {
                         String requestId = validRequestChecker.getRequestId(requestJson);
                         Map<String, Object> requestStatus =
-                                validRequestChecker.generateRequestStatusValidationMap(requestJson);
+                                validRequestChecker.generateRequestStatusValidationMap(requestJson, true);
                         // attach updated request status to the request metadata
                         String requestWithStatus = updateJsonWithValidationMap(requestJson, requestStatus);
 

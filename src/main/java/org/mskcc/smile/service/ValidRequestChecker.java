@@ -8,7 +8,7 @@ import java.util.Map;
 public interface ValidRequestChecker {
     String getFilteredValidRequestJson(String requestJson)
             throws JsonMappingException, JsonProcessingException, IOException;
-    Map<String, Object> generateRequestStatusValidationMap(String requestJson)
+    Map<String, Object> generateRequestStatusValidationMap(String requestJson, boolean requestMetadataOnly)
             throws JsonMappingException, JsonProcessingException, IOException;
     Map<String, Object> generateCmoSampleValidationMap(Map<String, Object> sampleMap)
             throws JsonMappingException, JsonProcessingException;

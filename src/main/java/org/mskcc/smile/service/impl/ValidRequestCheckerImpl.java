@@ -50,7 +50,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     @Override
     public String getFilteredValidRequestJson(String requestJson) throws IOException {
         // get request status report for request-level metadata
-        Map<String, Object> requestStatus = generateRequestStatusValidationMap(requestJson);
+        Map<String, Object> requestStatus = generateRequestStatusValidationMap(requestJson, false);
         Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
 
         Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
@@ -127,7 +127,7 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
     public Map<String, Object> generatePromotedRequestValidationMap(String requestJson)
             throws JsonMappingException, JsonProcessingException, IOException {
         // first check if request-level metadata is valid
-        Map<String, Object> requestStatus = generateRequestStatusValidationMap(requestJson);
+        Map<String, Object> requestStatus = generateRequestStatusValidationMap(requestJson, false);
         Map<String, Object> requestJsonMap = mapper.readValue(requestJson, Map.class);
 
         Object[] sampleList = mapper.convertValue(requestJsonMap.get("samples"),
@@ -196,8 +196,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * @throws IOException
      */
     @Override
-    public Map<String, Object> generateRequestStatusValidationMap(String requestJson)
-            throws IOException {
+    public Map<String, Object> generateRequestStatusValidationMap(String requestJson,
+            boolean requestMetadataOnly) throws IOException {
         Map<String, Object> validationMap = new HashMap<>();
         Map<String, Object> validationReport = new HashMap<>();
         if (StringUtils.isAllBlank(requestJson)) {
@@ -228,8 +228,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
             validationStatus = Boolean.FALSE;
         }
 
-        // determine whether request json has samples
-        if (!requestHasSamples(requestJson)) {
+        // determine whether request json has samples unless metadata only (i.e. request update)
+        if (!requestHasSamples(requestJson) && !requestMetadataOnly) {
             validationReport.put("samples (missing)", "Request JSON is missing 'samples' or "
                     + "'samples' is an empty list.");
             validationStatus = Boolean.FALSE;
