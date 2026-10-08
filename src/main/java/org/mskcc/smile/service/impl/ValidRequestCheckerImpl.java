@@ -196,8 +196,8 @@ public class ValidRequestCheckerImpl implements ValidRequestChecker {
      * @throws IOException
      */
     @Override
-    public Map<String, Object> generateRequestStatusValidationMap(String requestJson, boolean requestMetadataOnly)
-            throws IOException {
+    public Map<String, Object> generateRequestStatusValidationMap(String requestJson,
+            boolean requestMetadataOnly) throws IOException {
         Map<String, Object> validationMap = new HashMap<>();
         Map<String, Object> validationReport = new HashMap<>();
         if (StringUtils.isAllBlank(requestJson)) {
